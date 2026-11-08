@@ -34,9 +34,9 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Format
         run: bun run format:check
-      # Typed lint needs the schema package build output.
-      - name: Build the schema package
-        run: bun run build:schema
+      # Typed lint needs the schema build output and the route types that Next generates.
+      - name: Generate types
+        run: bun run typegen
       - name: Lint
         run: bun run lint
       - name: Typecheck

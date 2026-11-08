@@ -24,11 +24,12 @@
     "test:pack": "bun run --filter streamtrack-tv test:pack",
     "test:android": "cd android && ./gradlew test",
     "typecheck": "bun run --filter '*' typecheck",
+    "typegen": "bun run build:schema && bun run --filter web typegen",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "bun run format:check && bun run lint && bun run typecheck && bun run test:coverage",
+    "check": "bun run typegen && bun run format:check && bun run lint && bun run typecheck && bun run test:coverage",
     "sync:samples": "node scripts/samples.js",
     "screenshots": "node scripts/screenshots.js"
   },
