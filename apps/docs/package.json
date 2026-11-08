@@ -1,0 +1,21 @@
+{
+  "name": "docs",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.19"
+  },
+  "scripts": {
+    "dev": "bun run sync:changelog && blume dev",
+    "build": "bun run sync:changelog && blume build",
+    "preview": "blume preview",
+    "doctor": "blume doctor",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "sync:changelog": "mkdir -p docs/_generated && sed 1,2d ../../CHANGELOG.md > docs/_generated/changelog.md"
+  },
+  "dependencies": {
+    "blume": "^2.2.7",
+    "streamtrack-tv": "workspace:*"
+  }
+}

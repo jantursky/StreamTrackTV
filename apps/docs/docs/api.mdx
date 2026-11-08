@@ -1,0 +1,250 @@
+---
+title: API reference
+description: The sync, pairing and error contract of the StreamTrack TV ingest API, derived from the streamtrack-tv schema package.
+sidebar:
+  order: 4
+---
+
+The wire format is defined by Zod schemas in the `streamtrack-tv` npm package (`packages/schema`). This page documents schema version {{version}} of the package, wire `schemaVersion` 1. The Android app and the server both validate against the same schemas.
+
+```bash
+npm install streamtrack-tv
+```
+
+```ts
+import { syncPayloadSchema, LIMITS, SCHEMA_VERSION } from 'streamtrack-tv'
+
+const payload = syncPayloadSchema.parse(body)
+```
+
+All endpoints live under `/api/v1` and speak JSON with `Content-Type: application/json`. Replace `https://your-app.vercel.app` in the examples with your own address. Every response carries `Cache-Control: no-store` and a `default-src 'none'` Content Security Policy.
+
+Request bodies are strict. A field the schema does not list, such as a raw key code, fails with `400 invalid_payload`. Response bodies may gain fields in later versions, so clients should ignore fields they do not know. Limits count hits in fixed windows, and every `429` carries `Retry-After` with the seconds left in the current window.
+
+A demo-only deployment (no Supabase configured, or `DEMO_ONLY=1`) answers the device endpoints with `404 not_found`. `GET /api/v1/health` still works and reports `"mode": "demo"`.
+
+## Limits
+
+| Constant             | Value     | Meaning                                                       |
+| -------------------- | --------- | ------------------------------------------------------------- |
+| `maxRowsPerKind`     | 2000      | Maximum rows in each of `usage`, `keys`, `screen` per request |
+| `maxPackageLength`   | 255       | Longest package name                                          |
+| `maxLabelLength`     | 120       | Longest app label                                             |
+| `msPerHour`          | 3 600 000 | Upper bound for any duration in one hourly bucket             |
+| `pairCodeLength`     | 6         | Characters in a pairing code                                  |
+| `pairCodeTtlSeconds` | 600       | Lifetime of a pairing code                                    |
+
+Key classes are `dpad`, `select`, `back`, `home`, `media`, `volume` and `other`.
+
+## POST /api/v1/sync
+
+Sent by the TV with its device token in the header `Authorization: Bearer <deviceToken>`. The body is at most 1 MiB. Rows are absolute values per bucket, so sending the same rows again replaces them and changes nothing else.
+
+| Field           | Type   | Rules                                                                     |
+| --------------- | ------ | ------------------------------------------------------------------------- |
+| `schemaVersion` | `1`    | Must equal 1                                                              |
+| `sentAt`        | string | ISO 8601 date-time with offset                                            |
+| `timezone`      | string | IANA zone, 1 to 64 characters. Stored on the device (`devices.timezone`). |
+| `usage`         | array  | Up to 2000 usage buckets                                                  |
+| `keys`          | array  | Up to 2000 key buckets                                                    |
+| `screen`        | array  | Up to 2000 screen buckets                                                 |
+
+All three buckets have `day` (local date, `YYYY-MM-DD`) and `hour` (integer 0 to 23).
+
+| Bucket | Extra fields                                                                                                                     |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| usage  | `packageName` (Android package name, 1 to 255 characters), `label` (optional, 1 to 120), `foregroundMs` (integer 0 to 3 600 000) |
+| keys   | `keyClass` (one of the classes above), `count` (integer 0 to 1 000 000)                                                          |
+| screen | `screenOnMs` (integer 0 to 3 600 000)                                                                                            |
+
+```bash
+curl -X POST https://your-app.vercel.app/api/v1/sync \
+  -H "Authorization: Bearer $DEVICE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "schemaVersion": 1,
+    "sentAt": "2026-11-08T20:15:00+01:00",
+    "timezone": "Europe/Bratislava",
+    "usage": [
+      { "day": "2026-11-08", "hour": 19, "packageName": "com.netflix.ninja", "label": "Netflix", "foregroundMs": 2700000 }
+    ],
+    "keys": [
+      { "day": "2026-11-08", "hour": 19, "keyClass": "dpad", "count": 42 }
+    ],
+    "screen": [
+      { "day": "2026-11-08", "hour": 19, "screenOnMs": 3300000 }
+    ]
+  }'
+```
+
+Response:
+
+```json
+{
+  "accepted": { "usage": 1, "keys": 1, "screen": 1 },
+  "serverTime": "2026-11-08T19:15:01.204Z"
+}
+```
+
+Limit: 60 syncs per device per hour, with `Retry-After` on `429`. A `401` means the token is unknown or the device was revoked. The TV should stop syncing and offer to pair again. Keys are reported by class only, and any other field, such as a raw key code, fails validation. `label` sets the display name of an app, and rows without a label keep the name the server already has.
+
+### Idempotency
+
+A bucket is identified by its day and hour plus the package (usage), the key class (keys) or nothing (screen). This is what the exported `bucketKey()` helper returns, for example `2026-11-08T19|app|com.netflix.ninja`, `2026-11-08T19|key|dpad` and `2026-11-08T19|screen`. The server upserts on that key per device, so sending the same hour again overwrites it. Duplicates within one payload keep the last row. A retry after a timeout is safe.
+
+## POST /api/v1/pair/start
+
+Sent by the TV without a token. It opens a pairing request. The body is at most 4 KiB, and the response is `201 Created`. Limit: 10 requests per client address per hour.
+
+| Field        | Type   | Rules                         |
+| ------------ | ------ | ----------------------------- |
+| `deviceName` | string | 1 to 60 characters            |
+| `model`      | string | Optional, up to 80 characters |
+
+```bash
+curl -X POST https://your-app.vercel.app/api/v1/pair/start \
+  -H "Content-Type: application/json" \
+  -d '{ "deviceName": "Living room", "model": "Chromecast with Google TV" }'
+```
+
+```json
+{
+  "code": "K7QM4D",
+  "pollToken": "9c1f2e7a4b6d4a1f8d3e5b7c9a0f1e2d3c4b5a6978877665",
+  "expiresAt": "2026-11-08T19:25:00.000Z"
+}
+```
+
+The code has six characters from uppercase letters and digits, without `I`, `O`, `0` and `1`. It expires 600 seconds (10 minutes) after the request. The `pollToken` is 43 base64url characters and stays on the TV. The user enters the code at `/pair` on the dashboard.
+
+## POST /api/v1/pair/poll
+
+Sent by the TV every 5 seconds until the status is final. The TV waits for `Retry-After` on a `429`. An unknown poll token answers `404 not_found`. Limits per 10-minute window: 240 polls per poll token, twice the 5-second rate so retries fit, and 960 per client address, which also caps guessing of poll tokens.
+
+```bash
+curl -X POST https://your-app.vercel.app/api/v1/pair/poll \
+  -H "Content-Type: application/json" \
+  -d '{ "pollToken": "9c1f2e7a4b6d4a1f8d3e5b7c9a0f1e2d3c4b5a6978877665" }'
+```
+
+The response is one of three shapes.
+
+```json
+{ "status": "pending" }
+```
+
+```json
+{ "status": "expired" }
+```
+
+```json
+{ "status": "claimed", "deviceToken": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" }
+```
+
+The device token is returned exactly once and stays valid until the device is revoked. After the code is confirmed, the TV has another 10 minutes to collect it. `expired` also means the token was already collected. If the response with the token is lost, the next poll answers `expired` and the TV pairs again with a new code. The device created for the lost token never syncs, and the retention job deletes it a day later. The server stores only a hash of the token.
+
+## GET /api/v1/health
+
+No authentication.
+
+```json
+{ "status": "ok", "schemaVersion": 1, "mode": "full", "serverTime": "2026-11-08T20:00:00.000Z" }
+```
+
+## GET /api/v1/export
+
+Downloads the signed-in user's buckets. It needs the session cookie, and reads go through row level security.
+
+| Parameter | Required | Value                                       |
+| --------- | -------- | ------------------------------------------- |
+| `from`    | yes      | `YYYY-MM-DD`                                |
+| `to`      | yes      | `YYYY-MM-DD`, at most 366 days after `from` |
+| `format`  | no       | `csv` (default) or `json`                   |
+| `device`  | no       | Device id. All devices when left out.       |
+
+The response is an attachment. The file is named `streamtrack-<from>_<to>.<format>`.
+
+The CSV header is `device_id,device,day,hour,kind,key,value`, with one row per bucket, sorted by day, hour, device name, kind and key. `kind` is `app`, `key` or `screen`. `key` is the package name for `app`, the key class for `key` and empty for `screen`. `value` is milliseconds for `app` and `screen` and a count for `key`.
+
+The JSON export keeps the bucket kinds apart:
+
+```json
+{
+  "exportedAt": "2026-11-08T20:00:00.000Z",
+  "from": "2026-11-01",
+  "to": "2026-11-07",
+  "devices": [{ "id": "…", "name": "Living room TV", "model": "Chromecast HD" }],
+  "usage": [
+    { "deviceId": "…", "day": "2026-11-01", "hour": 20, "packageName": "com.netflix.ninja", "foregroundMs": 1800000 }
+  ],
+  "keys": [{ "deviceId": "…", "day": "2026-11-01", "hour": 20, "keyClass": "dpad", "count": 42 }],
+  "screen": [{ "deviceId": "…", "day": "2026-11-01", "hour": 20, "screenOnMs": 2400000 }]
+}
+```
+
+`devices` lists every device of the account, also when `device` narrows the buckets.
+
+CSV uses CRLF line ends and prefixes cells that start with `=`, `+`, `-` or `@` with an apostrophe, so spreadsheets do not run them.
+
+```bash
+curl -b cookies.txt "https://your-app.vercel.app/api/v1/export?from=2026-11-01&to=2026-11-08&format=json" -o export.json
+```
+
+## Where the secret key is used
+
+The Supabase secret key bypasses row level security. Only these server paths use it: the device API (`sync`, `pair/start`, `pair/poll`), confirming a pairing code, the read-only share page `/s/<token>`, the cron jobs and account deletion. Everything else in the dashboard, including export, uses the signed-in user's session.
+
+## Server actions
+
+The dashboard changes data through Next.js server actions, not public endpoints. Each one checks the session, validates the form with zod and writes through the session client, so row level security applies.
+
+| Action                               | Effect                                                                  |
+| ------------------------------------ | ----------------------------------------------------------------------- |
+| `pairDevice`                         | Confirms a pairing code shown on the TV (10 attempts per 10 minutes)    |
+| `updateDevice`                       | Renames a device and assigns it to a household member                   |
+| `revokeDevice`                       | Revokes a device for good. Its token stops working at once.             |
+| `deleteDeviceData`                   | Deletes all buckets of one device. The device name must be typed again. |
+| `setAppCategory`                     | Moves an app to another category                                        |
+| `addMember`, `deleteMember`          | Manages household members                                               |
+| `addGoal`, `deleteGoal`              | Manages daily and weekly limits                                         |
+| `saveSettings`                       | Time zone, language, retention and the weekly digest                    |
+| `createShareLink`, `revokeShareLink` | Read-only links at `/s/<token>`, optionally for one device              |
+| `deleteAccount`                      | Deletes the user and, through cascades, every row they own              |
+
+## Scheduled jobs
+
+Both run on Vercel Cron and need `Authorization: Bearer <CRON_SECRET>`.
+
+| Endpoint                  | Schedule (UTC) | Effect                                                                                                                           |
+| ------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/cron/retention` | Daily, 03:17   | Deletes buckets past each user's retention, expired codes, links and counters, and devices that never synced a day after pairing |
+| `GET /api/cron/digest`    | Mondays, 07:00 | Emails last week's summary to users who opted in, through Resend                                                                 |
+
+Without Supabase or `RESEND_API_KEY`, the jobs answer `200` with a `skipped` reason.
+
+## Errors
+
+Every non-2xx response has this shape:
+
+```json
+{ "error": "invalid_payload", "message": "keys.0.keyClass: Invalid option" }
+```
+
+| `error`           | Status     | Meaning                                                       |
+| ----------------- | ---------- | ------------------------------------------------------------- |
+| `invalid_payload` | 400 or 413 | The body is missing, not JSON, too large or fails the schema  |
+| `unauthorized`    | 401        | Missing, unknown or revoked credentials                       |
+| `not_found`       | 404        | Unknown resource, or the device API is off on this deployment |
+| `rate_limited`    | 429        | Too many requests in the window                               |
+| `server_error`    | 500        | Unexpected failure. The details stay in the server log.       |
+
+## Rate limits
+
+| Endpoint                  | Limit                                                        |
+| ------------------------- | ------------------------------------------------------------ |
+| `POST /api/v1/sync`       | 60 per device per hour                                       |
+| `POST /api/v1/pair/start` | 10 per client address per hour                               |
+| `POST /api/v1/pair/poll`  | 240 per poll token and 960 per client address per 10 minutes |
+| Pairing confirmation      | 10 attempts per user per 10 minutes                          |
+
+The limits are kept in Postgres, so they hold across serverless instances.

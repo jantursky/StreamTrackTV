@@ -1,0 +1,85 @@
+---
+title: Self-hosting
+description: Environment variables, Supabase Auth settings, scheduled jobs and the demo-only mode for your own StreamTrack TV instance.
+---
+
+The dashboard is a Next.js app in `apps/web`, backed by Supabase (Postgres and Auth). Vercel runs it, applies the migrations during the build and calls the two scheduled jobs. The [getting started](/getting-started) page covers the first deployment.
+
+## Environment variables
+
+Copy `apps/web/.env.example` to `.env.local` for local development. With the Supabase variables empty, the app runs as a demo-only deployment.
+
+| Variable                               | Required       | Purpose                                                                                                                                                                                                                          |
+| -------------------------------------- | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | yes            | Project URL, such as `https://abcd1234.supabase.co`. Public.                                                                                                                                                                     |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | yes            | Publishable key (`sb_publishable_...`). Public; row level security protects the data. Older projects can set `NEXT_PUBLIC_SUPABASE_ANON_KEY` instead.                                                                            |
+| `SUPABASE_SECRET_KEY`                  | yes            | Secret key (`sb_secret_...`). Server only. Used by the device API, pairing, the share page, the cron jobs and account deletion. Older projects can set `SUPABASE_SERVICE_ROLE_KEY` instead. Never prefix it with `NEXT_PUBLIC_`. |
+| `DATABASE_URL`                         | for migrations | Direct (non-pooled) Postgres connection string. Wins over `POSTGRES_URL_NON_POOLING` when both are set.                                                                                                                          |
+| `POSTGRES_URL_NON_POOLING`             | for migrations | Provided by the Supabase integration. The build skips migrations when neither this nor `DATABASE_URL` is set.                                                                                                                    |
+| `MIGRATE_ON_PREVIEW`                   | no             | Set to `1` on a preview environment that has its own database, so builds there migrate too. See [Migrations](#migrations).                                                                                                       |
+| `DATABASE_CA_CERT`                     | no             | PEM text of the CA that signed the database certificate (Supabase: Database settings, SSL configuration). With it the migration runner verifies the certificate. See [Migrations](#migrations).                                  |
+| `NEXT_PUBLIC_SITE_URL`                 | yes            | Public origin used in confirmation emails, share links and the weekly digest, without a trailing slash. Falls back to `VERCEL_PROJECT_PRODUCTION_URL`, then `VERCEL_URL`, then `http://localhost:3000`.                          |
+| `CRON_SECRET`                          | yes            | Random string of at least 32 characters. Vercel Cron sends it as a bearer token. Without it the cron endpoints refuse every call.                                                                                                |
+| `DEMO_ONLY`                            | no             | Set to `1` to serve only the landing page and `/demo`, with accounts and the device API turned off.                                                                                                                              |
+| `RESEND_API_KEY`                       | for the digest | Resend API key. Without it the digest job reports itself as skipped.                                                                                                                                                             |
+| `DIGEST_FROM`                          | for the digest | Sender address on a domain verified in Resend. Defaults to `StreamTrack TV <onboarding@resend.dev>`, which Resend delivers only to the account owner.                                                                            |
+
+## Database
+
+Migrations live in `supabase/migrations`. The build runs `scripts/migrate.mjs`, which applies the files in order, records them in `public.schema_migrations` and applies only new files on later builds. Row level security is on for every table.
+
+### Migrations
+
+- **Production builds only.** The build migrates when `VERCEL_ENV` is unset (a local or CI build) or `production`. Preview builds skip it and say so in the build log. The integration gives previews the production database, and a branch must not change its schema before it is promoted. Set `MIGRATE_ON_PREVIEW=1` on a preview environment that has its own database.
+- **TLS.** Supabase signs its database certificates with its own root CA, which is not in Node's trust store. Without that CA the runner encrypts the connection but does not verify the certificate, which is what libpq's `sslmode=require` does too. To verify it, download the CA from Database, Settings, SSL Configuration and set its PEM text as `DATABASE_CA_CERT`, or point `sslrootcert` in the URL at the file. `sslmode=verify-full` or `verify-ca` always verifies, against the system store when no CA is given. `sslmode=disable` turns TLS off, and `localhost` connects without TLS unless the URL asks for it.
+
+To run the migrations without a deployment, for example against a staging database:
+
+```bash
+DATABASE_URL=postgres://... bun run --filter web migrate
+```
+
+`bunx supabase db push` also works, because the files are plain SQL. Do not mix both tools on one database, since each keeps its own history.
+
+### Database tests
+
+The tests in `apps/web/test/db` run the migrations and SQL functions against a real Postgres (15 or newer). They are skipped unless `TEST_DATABASE_URL` points at a throwaway database whose name contains `test`. Its `public` and `auth` schemas are dropped first.
+
+```bash
+TEST_DATABASE_URL=postgres://postgres:postgres@localhost:5432/streamtrack_test bun run --filter web test
+```
+
+In GitHub Actions, a `postgres:17` service with `POSTGRES_DB: streamtrack_test` is enough.
+
+## Supabase Auth settings
+
+In the Supabase dashboard, under Authentication:
+
+1. **URL Configuration.** Set Site URL to your `NEXT_PUBLIC_SITE_URL` and add `https://<your domain>/auth/confirm` to Redirect URLs. Add preview domains too if sign-up should work on preview deployments.
+2. **Sign In / Providers, Email.** Keep Confirm email on.
+3. **Emails, SMTP Settings.** The built-in mailer sends only a few emails per hour. Set up your own SMTP, for example Resend, before you invite anyone.
+4. **Emails, Templates.** The default links use the PKCE flow, which works only in the browser where the user signed up. Links that carry a token hash work anywhere. Change the link in these templates:
+
+   - Confirm signup: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email&next=/app`
+   - Reset password: `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/reset-password`
+
+`/auth/confirm` accepts both kinds of link.
+
+## Scheduled jobs
+
+`apps/web/vercel.json` declares both jobs. Vercel sends `Authorization: Bearer $CRON_SECRET` with each call.
+
+| Path                  | Schedule (UTC) | Job                                                                                                     |
+| --------------------- | -------------- | ------------------------------------------------------------------------------------------------------- |
+| `/api/cron/retention` | `17 3 * * *`   | Deletes data older than each user's retention period, and devices that never synced a day after pairing |
+| `/api/cron/digest`    | `0 7 * * 1`    | Sends the weekly digest                                                                                 |
+
+The Hobby plan runs crons at most once a day and at an approximate time, which both jobs tolerate. Without Supabase or `RESEND_API_KEY`, the jobs answer `200` with a `skipped` reason.
+
+## Weekly digest
+
+Set `RESEND_API_KEY` and `DIGEST_FROM`. Without them the digest job does nothing. Users turn the digest on in Settings.
+
+## Demo-only deployment
+
+Set `DEMO_ONLY=1` and leave out the Supabase variables. The site then serves the landing page and the seeded demo at `/demo`. Sign-in pages say that accounts are off, `/app` redirects to `/demo` and the device API answers `404`. Do not use this mode for real data.

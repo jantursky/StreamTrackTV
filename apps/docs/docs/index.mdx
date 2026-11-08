@@ -1,0 +1,56 @@
+---
+title: Introduction
+description: StreamTrack TV logs screen time, per-app foreground time and remote keypress counts on Android TV, and shows them in a dashboard you host yourself.
+sidebar:
+  order: 1
+---
+
+StreamTrack TV shows how a television is used. A small Android TV app records screen-on time, how long each app is in the foreground and how often each kind of remote key is pressed. It sends hourly totals to a dashboard that runs in your own Vercel and Supabase accounts. Nobody else holds the data.
+
+The current schema version of the sync package is {{version}}. The [changelog](/changelog) lists what each release changed.
+
+## Why self-hosted
+
+A TV sees a lot about a household: what is watched, when, and for how long. A hosted service would have to store that for everyone. This project does not run such a service. You deploy the dashboard and the database yourself, and the TV app talks only to the address you pair it with.
+
+The code is open, so you can read what the app collects and what the server stores. The [privacy and security](/privacy-and-security) page lists every field.
+
+## Why privacy-first
+
+The app collects counts and durations and nothing else. It never records which buttons were pressed beyond a class such as `dpad` or `media`. It never records text, window content, screenshots, contacts or what was watched inside an app. The TV also has a screen that shows the exact payload before it leaves the device.
+
+## What you get
+
+- Screen time per day and per hour.
+- Foreground time per app, grouped into categories you can edit.
+- Remote keypress counts by class, plus an hour-by-weekday heatmap.
+- Several TVs and household profiles in one dashboard.
+- Daily and weekly goals, a weekly email digest and read-only share links.
+- Export, retention settings and full deletion.
+- A demo mode with seeded data, so you can look around without a TV.
+
+## Where to start
+
+<CardGroup cols={2}>
+  <Card title="Getting started" href="/getting-started" icon="rocket">
+    Deploy the dashboard, install the APK and pair a TV.
+  </Card>
+  <Card title="Guides" href="/guides" icon="book-open">
+    The TV app, the dashboard, self-hosting and troubleshooting.
+  </Card>
+  <Card title="API reference" href="/api" icon="code">
+    The sync, pairing and error contract.
+  </Card>
+  <Card title="Privacy and security" href="/privacy-and-security" icon="shield">
+    What is collected, what is not, and how tokens work.
+  </Card>
+</CardGroup>
+
+## Screenshots
+
+<figure className="shot">
+  <img className="shot-light" src="/screens/home-light.png" alt="The StreamTrack TV home page" loading="lazy" />
+  <img className="shot-dark" src="/screens/home-dark.png" alt="The StreamTrack TV home page" loading="lazy" />
+</figure>
+
+The [dashboard guide](/guides/dashboard) shows the Overview, Calendar and Heatmap tabs.

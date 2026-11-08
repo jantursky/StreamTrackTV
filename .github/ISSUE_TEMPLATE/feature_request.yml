@@ -1,0 +1,31 @@
+name: Feature request
+description: An idea for the app, the dashboard, the docs or the schema package.
+labels: [enhancement]
+body:
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Android app
+        - Web dashboard
+        - Docs
+        - Schema package (streamtrack-tv)
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do
+      description: The viewing habit or the report you have in mind, and what gets in the way today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you'd like
+      description: A sketch of the screen, the API or the data involved helps.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you've tried

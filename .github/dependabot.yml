@@ -1,0 +1,30 @@
+version: 2
+updates:
+  # The repo has a bun.lock, which only the bun ecosystem updates.
+  - package-ecosystem: bun
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      next-react-supabase:
+        patterns: ['next', 'react', 'react-dom', '@types/react', '@types/react-dom', '@supabase/*']
+      dev-tooling:
+        dependency-type: development
+        update-types: [minor, patch]
+    ignore:
+      # typescript-eslint does not support TypeScript 7 yet.
+      - dependency-name: typescript
+        update-types: ['version-update:semver-major']
+  - package-ecosystem: gradle
+    directory: /android
+    schedule:
+      interval: weekly
+    groups:
+      androidx-compose:
+        patterns: ['androidx.*', 'org.jetbrains.compose*']
+      kotlin-tooling:
+        patterns: ['org.jetbrains.kotlin*', 'org.jetbrains.kotlinx*', 'com.google.devtools.ksp*']
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

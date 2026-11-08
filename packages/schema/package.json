@@ -1,0 +1,66 @@
+{
+  "name": "streamtrack-tv",
+  "version": "1.0.0",
+  "description": "Typed sync payload and pairing contract between the StreamTrack TV Android app and its web dashboard.",
+  "keywords": [
+    "android-tv",
+    "analytics",
+    "screen-time",
+    "telemetry",
+    "zod",
+    "schema",
+    "self-hosted",
+    "privacy"
+  ],
+  "license": "MIT",
+  "author": "Jan Tursky <jan.tursky@gmail.com> (https://jantursky.com)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jantursky/StreamTrackTV.git",
+    "directory": "packages/schema"
+  },
+  "homepage": "https://github.com/jantursky/StreamTrackTV#readme",
+  "bugs": "https://github.com/jantursky/StreamTrackTV/issues",
+  "type": "module",
+  "sideEffects": false,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "lint:package": "publint --strict && attw --pack . --profile esm-only",
+    "test:pack": "node scripts/pack-test.js",
+    "prepublishOnly": "bun run typecheck && bun run test && bun run build && bun run lint:package"
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-v8": "^5.1.0",
+    "publint": "^0.3.25",
+    "vitest": "^5.1.0"
+  }
+}

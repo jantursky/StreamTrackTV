@@ -1,0 +1,70 @@
+/*
+ * StreamTrack TV design tokens (design/DESIGN.md). Every surface uses these and nothing else.
+ * Light and dark values live side by side in light-dark(); the active scheme follows the system unless
+ * the visitor picked one, which sets data-theme on <html>.
+ */
+:root {
+  color-scheme: light dark;
+
+  --accent: light-dark(#3ba6f1, #5bb6f5);
+  --accent-edge: light-dark(#3398e1, #7cc4f7);
+  --accent-wash: light-dark(#c1e1f7, #12324a);
+  /* Text on the accent fill: dark in both schemes, since light text on cyan fails contrast. */
+  --on-accent: #0c0a09;
+  --ink: light-dark(#0c0a09, #fafaf9);
+  --soot: light-dark(#1c1917, #e7e5e4);
+  --text: light-dark(#78716c, #a8a29e);
+  --text-faint: light-dark(#a8a29e, #78716c);
+  --border-strong: light-dark(#d6d3d1, #44403c);
+  --border: light-dark(#e8e6e5, #292524);
+  --canvas: light-dark(#fafaf9, #0c0a09);
+  --surface: light-dark(#ffffff, #1c1917);
+
+  /* Logo only: colors from the Android ecosystem, not from the UI palette. */
+  --logo-tile: light-dark(#3ddc84, #52e394);
+  --logo-ink: #073042;
+  --logo-cream: #fafaf9;
+
+  /* Status marks: small text and icons only, never fills. */
+  --status-error: light-dark(#b42318, #f97066);
+  --status-warning: light-dark(#a15c07, #fdb022);
+
+  /* Chart series: the accent, then neutral stone steps. Never a second hue. */
+  --series-1: var(--accent);
+  --series-2: light-dark(#292524, #f5f5f4);
+  --series-3: light-dark(#57534e, #d6d3d1);
+  --series-4: light-dark(#78716c, #a8a29e);
+  --series-5: light-dark(#a8a29e, #78716c);
+  --series-6: light-dark(#d6d3d1, #57534e);
+  --series-7: light-dark(#e7e5e4, #44403c);
+
+  /* Heat scale: the accent mixed into the card surface. */
+  --heat-0: var(--border);
+  --heat-1: color-mix(in oklab, var(--accent) 22%, var(--surface));
+  --heat-2: color-mix(in oklab, var(--accent) 42%, var(--surface));
+  --heat-3: color-mix(in oklab, var(--accent) 62%, var(--surface));
+  --heat-4: color-mix(in oklab, var(--accent) 82%, var(--surface));
+  --heat-5: var(--accent);
+
+  --font-display: 'Inter Tight Variable', 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Inter Variable', 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+  --radius-pill: 9999px;
+  --radius-feature: 16px;
+  --radius-card: 10px;
+  --radius-input: 6px;
+  --radius-icon: 4px;
+
+  --shadow-card: 0 4px 16px rgb(0 0 0 / 5%);
+  --shadow-float: 0 12px 45px rgb(12 10 9 / 12%);
+
+  --content-width: 1200px;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}

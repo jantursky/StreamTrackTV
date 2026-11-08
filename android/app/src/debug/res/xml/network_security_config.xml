@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug builds only, for a development server on the local network. Release builds keep the
+     platform default, which refuses plain http. -->
+<network-security-config xmlns:tools="http://schemas.android.com/tools">
+  <base-config
+    cleartextTrafficPermitted="true"
+    tools:ignore="InsecureBaseConfiguration" />
+</network-security-config>

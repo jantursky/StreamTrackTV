@@ -1,0 +1,31 @@
+---
+title: Contributing
+description: Where to report problems and how to send changes.
+sidebar:
+  order: 8
+---
+
+Bug reports and pull requests are welcome in the [GitHub repository](https://github.com/jantursky/StreamTrackTV). The `CONTRIBUTING.md` file there describes the setup, the commit style and the checks that must pass.
+
+Before you start, run the repository checks from the root:
+
+```bash
+bun install
+bun run check
+```
+
+## First release
+
+Set these up once before the first tag:
+
+- Repository secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and `ANDROID_KEY_PASSWORD`.
+- A GitHub environment named `npm`.
+- The `streamtrack-tv` package on npm. npm only lets you add a trusted publisher to a package that exists. Publish the first version by hand with `npm publish --access public` from `packages/schema`, then add the trusted publisher (this repository, workflow `release.yml`, environment `npm`) in the package settings. Later tags publish through the workflow.
+
+A release tag must match the version in `packages/schema/package.json` and `APP_VERSION_NAME` in `android/gradle.properties`, and `CHANGELOG.md` needs a section for it.
+
+The database tests need a Postgres, as described in [self-hosting](/guides/self-hosting#database-tests).
+
+## Sync format changes
+
+A change to the sync format must update `packages/schema`, its fixtures, the Android DTOs and the [API reference](/api) together.

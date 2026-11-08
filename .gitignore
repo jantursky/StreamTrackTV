@@ -1,0 +1,58 @@
+# Logs
+*.log
+npm-debug.log*
+
+# Dependencies and build output
+node_modules/
+dist
+.next/
+*.tsbuildinfo
+*.tgz
+
+# Tests and coverage
+coverage
+*.lcov
+.vitest
+test-results/
+playwright-report/
+
+# Docs generator
+.blume/
+.blume-verify/
+apps/docs/docs/_generated/
+
+# Env files (the example file stays tracked)
+.env
+.env.*
+!.env.example
+*.local
+
+# Deploy
+.vercel/
+supabase/.temp/
+
+# Android
+android/.gradle/
+android/build/
+android/**/build/
+android/local.properties
+android/**/*.jks
+android/**/*.keystore
+android/.idea/
+*.apk
+*.aab
+captures/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Next.js generated types
+apps/web/next-env.d.ts
+
+# Kotlin / Gradle caches in the build logic and project roots
+android/.kotlin/
+android/build-logic/.kotlin/
+android/build-logic/.gradle/

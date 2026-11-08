@@ -1,0 +1,105 @@
+---
+title: Dashboard
+description: A tour of the dashboard sections and the controls for exporting, retaining and deleting data.
+---
+
+The dashboard lives under `/app`. The tabs at the top are Overview, Calendar, Apps, Remote, Heatmap, Devices, Household, Goals and Settings. Links keep the selected period and device when you switch tabs. The site also ships a web app manifest, so a browser can add it to a home screen. There is no offline mode.
+
+## Range and device filters
+
+Overview, Apps, Remote and Heatmap share a range bar with day, week and custom periods, arrows to step back and forward, and a device filter. The state is kept in the URL, so a link reproduces the view.
+
+## Overview
+
+Screen-on time, app time and keypresses for the selected period, with the top apps and the sync status of each device.
+
+<figure className="shot">
+  <img
+    className="shot-light"
+    src="/screens/overview-light.png"
+    alt="The Overview tab with screen time, top apps and keypresses"
+    loading="lazy"
+  />
+  <img
+    className="shot-dark"
+    src="/screens/overview-dark.png"
+    alt="The Overview tab with screen time, top apps and keypresses"
+    loading="lazy"
+  />
+</figure>
+
+## Calendar
+
+A month grid that colors each day by screen time. Select a day to see its totals, its top apps and screen time by hour. Select two days or two spans to compare them side by side.
+
+<figure className="shot">
+  <img
+    className="shot-light"
+    src="/screens/calendar-light.png"
+    alt="The Calendar tab with a month grid and a day summary"
+    loading="lazy"
+  />
+  <img
+    className="shot-dark"
+    src="/screens/calendar-dark.png"
+    alt="The Calendar tab with a month grid and a day summary"
+    loading="lazy"
+  />
+</figure>
+
+## Apps
+
+Apps ranked by foreground time. Labels come from the TV. Move an app to another category: streaming, video, music, live TV, games, kids, system or other.
+
+## Remote
+
+Keypresses split by class: `dpad`, `select`, `back`, `home`, `media`, `volume` and `other`, with the count by hour.
+
+## Heatmap
+
+Average screen-on time by weekday and hour. Each cell is divided by how often that weekday occurs in the period, so partial weeks do not skew it. Without a chosen period it shows the last four weeks. A footnote under the chart says: "Each cell is the average screen time for that hour on that weekday in the selected range."
+
+<figure className="shot">
+  <img
+    className="shot-light"
+    src="/screens/heatmap-light.png"
+    alt="The Heatmap tab with average screen time by weekday and hour"
+    loading="lazy"
+  />
+  <img
+    className="shot-dark"
+    src="/screens/heatmap-dark.png"
+    alt="The Heatmap tab with average screen time by weekday and hour"
+    loading="lazy"
+  />
+</figure>
+
+## Devices
+
+Each paired TV has a name, a last-seen time and a household member. Rename it, assign it to a member, revoke it or delete its data. Revoking is final and the token stops working at once. Deleting data asks you to type the device name again. New TVs are added at `/pair`, where you type the code from the TV screen.
+
+## Household
+
+Optional members, such as people in the home. Assign devices to a member and set goals for the member.
+
+## Goals
+
+A goal is a daily or weekly limit on screen-on time, app time or keypresses. Its scope is a device, a household member, a category or one app. The page shows progress for the current period. Goals are limits to watch. They do not block anything on the TV.
+
+## Settings
+
+- Time zone and language. The account time zone is set from your browser on first visit. The dashboard uses it to decide which day is today. If it is not set, it uses the zone of the device that synced last, then UTC.
+- Retention in days (365 by default). A daily job deletes older buckets.
+- The weekly digest email, which also needs the server variables in [self-hosting](/guides/self-hosting).
+- Share links.
+- Account deletion.
+
+## Share links
+
+A share link opens a read-only page at `/s/<token>`, for all devices or for one. Links last 1, 7 or 30 days, your choice, and can be revoked in Settings. A link scoped to one device shows only the apps used on that device. The page shows no goals, household members or settings, and search engines are told not to index it. Anyone with the link can see the numbers, so treat it like a password.
+
+## Data control
+
+- **Export.** `GET /api/v1/export` downloads CSV or JSON for a date range of up to 366 days, for all devices or one. See the [API reference](/api#get-apiv1export).
+- **Retention.** Pick how long buckets are kept in Settings.
+- **Delete.** Delete a whole device's data from Devices, or delete the whole account from Settings. There is no per-app delete. Account deletion removes every row you own.

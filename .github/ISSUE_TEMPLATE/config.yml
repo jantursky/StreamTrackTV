@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://streamtrack-tv-docs.vercel.app
+    about: Setup guides, pairing steps and the API reference.
+  - name: Security vulnerability
+    url: https://github.com/jantursky/StreamTrackTV/security/advisories/new
+    about: Report it privately. Please don't open a public issue for a security problem.

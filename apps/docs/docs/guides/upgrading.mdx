@@ -1,0 +1,24 @@
+---
+title: Upgrading
+description: Update the web app, the database and the TV app.
+---
+
+## Web app and database
+
+Pull the new version into your fork, or use Vercel's sync for the repository you deployed from. Vercel rebuilds on push. The build applies new migrations before the app starts. Read the [changelog](/changelog) first, because a release can include a schema change.
+
+## TV app
+
+Download the new APK from [GitHub Releases](https://github.com/jantursky/StreamTrackTV/releases) and install it (`StreamTrackTV-<version>.apk`) over the old one with `adb install -r`, or through Downloader. The pairing, the local data and the permissions are kept, since the signing key does not change.
+
+## Wire format
+
+The sync payload carries `schemaVersion`. The server rejects a version it does not know with `invalid_payload`. A breaking change raises the number, and the changelog says which app and server versions work together. Upgrade the server first, then the TVs.
+
+## Known limitations
+
+- The TV cannot revoke itself on the server. Unpairing on the TV forgets the token locally. Revoke the device in the dashboard under Devices.
+- Excluding an app on the TV deletes only the local data. Rows already uploaded stay on the server until you delete them.
+- Goals are managed in the dashboard and are not synced to the TV yet. The daily screen limit and per-app limits in the TV settings are separate local settings.
+- The weekly digest sender defaults to Resend's onboarding address, which Resend delivers only to the account owner. Set `DIGEST_FROM` to an address on a verified domain.
+- Supabase confirmation emails should use the token-hash links described in [self-hosting](/guides/self-hosting#supabase-auth-settings). With the default links, confirmation works only in the browser where the user signed up.

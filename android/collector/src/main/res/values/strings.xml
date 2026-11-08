@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="key_press_service_label">StreamTrack TV remote counter</string>
+  <string name="key_press_service_description">Counts remote presses by class only: D-Pad, select, back, home, media, volume or other. It never records which key was pressed, never reads text or screen content, and never blocks a key.</string>
+</resources>

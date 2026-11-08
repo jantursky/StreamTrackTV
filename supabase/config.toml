@@ -1,0 +1,14 @@
+# Local development with `bunx supabase start`. Hosted projects take these settings from the dashboard,
+# see apps/web/DEPLOY.md.
+project_id = "streamtrack-tv"
+
+[db]
+major_version = 17
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/auth/confirm"]
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true

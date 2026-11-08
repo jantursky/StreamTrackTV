@@ -1,0 +1,234 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/inter-tight';
+@import './tokens.css';
+
+/* Only design tokens are available as utilities: Tailwind's default palette, fonts and radii are dropped. */
+@theme inline {
+  --color-*: initial;
+  --color-accent: var(--accent);
+  --color-accent-edge: var(--accent-edge);
+  --color-accent-wash: var(--accent-wash);
+  --color-on-accent: var(--on-accent);
+  --color-ink: var(--ink);
+  --color-soot: var(--soot);
+  --color-muted: var(--text);
+  --color-faint: var(--text-faint);
+  --color-line-strong: var(--border-strong);
+  --color-line: var(--border);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-logo-tile: var(--logo-tile);
+  --color-logo-ink: var(--logo-ink);
+  --color-logo-cream: var(--logo-cream);
+  --color-error: var(--status-error);
+  --color-warning: var(--status-warning);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-series-3: var(--series-3);
+  --color-series-4: var(--series-4);
+  --color-series-5: var(--series-5);
+  --color-series-6: var(--series-6);
+  --color-series-7: var(--series-7);
+  --color-heat-0: var(--heat-0);
+  --color-heat-1: var(--heat-1);
+  --color-heat-2: var(--heat-2);
+  --color-heat-3: var(--heat-3);
+  --color-heat-4: var(--heat-4);
+  --color-heat-5: var(--heat-5);
+
+  --font-*: initial;
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+
+  --radius-*: initial;
+  --radius-pill: var(--radius-pill);
+  --radius-feature: var(--radius-feature);
+  --radius-card: var(--radius-card);
+  --radius-input: var(--radius-input);
+  --radius-icon: var(--radius-icon);
+
+  --shadow-*: initial;
+  --shadow-card: var(--shadow-card);
+  --shadow-float: var(--shadow-float);
+
+  --text-caption: 10px;
+  --text-caption--line-height: 12px;
+  --text-small: 13px;
+  --text-small--line-height: 1.5;
+  --text-body: 14px;
+  --text-body--line-height: 1.64;
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 1.6;
+  --text-subheading: 20px;
+  --text-subheading--line-height: 1.35;
+  --text-heading: 32px;
+  --text-heading--line-height: 1.15;
+  --text-heading--letter-spacing: -0.025em;
+  --text-display: 52px;
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.021em;
+
+  --container-content: var(--content-width);
+}
+
+@layer base {
+  html {
+    background: var(--canvas);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    min-height: 100dvh;
+    background: var(--canvas);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.64;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-weight: 500;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: var(--accent-wash);
+    color: var(--ink);
+  }
+}
+
+@layer components {
+  .btn-primary,
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 8px 16px;
+    border-radius: var(--radius-pill);
+    border: 1px solid;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      border-color 120ms,
+      background-color 120ms;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    border-color: var(--accent-edge);
+    color: var(--on-accent);
+  }
+
+  .btn-primary:hover {
+    background: var(--accent-edge);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    border-color: var(--border-strong);
+    color: var(--ink);
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--ink);
+  }
+
+  .btn-primary:disabled,
+  .btn-ghost:disabled,
+  .btn-ghost[aria-disabled='true'] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-card);
+    padding: 24px;
+  }
+
+  .input {
+    width: 100%;
+    min-height: 36px;
+    padding: 7px 10px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-input);
+    color: var(--ink);
+    font: inherit;
+  }
+
+  .input:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 0;
+    border-color: var(--accent-edge);
+  }
+
+  .input[aria-invalid='true'] {
+    border-color: var(--status-error);
+  }
+
+  .tab {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .tab:hover {
+    border-color: var(--border-strong);
+  }
+
+  .tab[aria-current='page'],
+  .tab[aria-current='true'] {
+    background: var(--soot);
+    border-color: var(--soot);
+    color: var(--canvas);
+  }
+
+  .highlight {
+    display: inline-block;
+    padding: 0 0.3em;
+    border-radius: var(--radius-pill);
+    background: var(--accent-wash);
+    color: var(--accent-edge);
+  }
+
+  .label {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .link {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--border-strong);
+    text-underline-offset: 3px;
+  }
+
+  .link:hover {
+    text-decoration-color: var(--accent-edge);
+  }
+}

@@ -1,0 +1,76 @@
+---
+title: TV app
+description: What the Android TV app needs, what its accessibility service can see and what it never collects.
+---
+
+The app targets Android 8.0 (API 26) and newer and is built for the remote. It starts in the dark theme and has a light theme in Settings.
+
+## Onboarding
+
+On first start the app asks for the server address, then shows a 6-character code and a QR code that points to `{server}/pair?code=`. Confirm it in the dashboard. The device token is stored encrypted with a key from the Android Keystore. After pairing, the **Setup** screen lists the permissions.
+
+## Permissions
+
+| Permission                                | Why                                | What it gives the app                      |
+| ----------------------------------------- | ---------------------------------- | ------------------------------------------ |
+| Usage access                              | Read app usage events from Android | Foreground time per app and screen-on time |
+| Accessibility service                     | Receive remote key events          | The class of each key press                |
+| Battery optimization exemption (optional) | Keep syncing in standby            | Nothing extra to read                      |
+| Internet                                  | Send totals to your server         | Nothing extra to read                      |
+
+### Granting permissions with adb
+
+Some TVs hide the settings pages. The app then shows the matching command, and you can run them yourself:
+
+```bash
+PKG=com.apptiary.streamtracktv
+
+# Usage access
+adb shell appops set $PKG GET_USAGE_STATS allow
+
+# Accessibility service. This replaces the list of enabled services.
+# If others are enabled, read the list first and append ours with a colon.
+adb shell settings get secure enabled_accessibility_services
+adb shell settings put secure enabled_accessibility_services $PKG/com.apptiary.streamtracktv.collector.KeyPressService
+
+# Battery optimization exemption
+adb shell dumpsys deviceidle whitelist +$PKG
+```
+
+## What the accessibility service sees
+
+Accessibility is a powerful permission, and Android warns about it for a reason. This service only counts key presses. It cannot read window content and receives no accessibility events. The code turns each key press into a class and discards the key code. Counts are held in memory and added to the local database every minute.
+
+The classes are `dpad`, `select`, `back`, `home`, `media`, `volume` and `other`. Text typed with an on-screen keyboard is not read.
+
+## What is never collected
+
+- Which key was pressed beyond its class.
+- Typed text, screen content, window titles or screenshots.
+- What is watched inside an app.
+- Location, microphone, camera, contacts, accounts or advertising IDs.
+
+Package names, app display names and durations are the most specific data that leaves the TV. App data is excluded from cloud backup and device transfer. See [privacy and security](/privacy-and-security).
+
+## Screens
+
+- **Dashboard.** Today's summary, top apps and keypresses on the TV.
+- **Privacy.** The exact JSON of the next upload.
+- **Setup.** The permission checklist described above.
+- **Settings.** Sync interval (15 minutes to 24 hours), a daily screen time limit, per-app limits, excluded apps, light or dark theme, the server address, unpairing and deleting local data.
+
+## Excluding an app
+
+In Settings, Apps, you can exclude an app. It is neither recorded nor uploaded from then on, and its stored hours on the TV are deleted. Data already uploaded stays on the server. Delete it from the dashboard if you want it gone.
+
+## Data on the device
+
+The app keeps hourly buckets in a local database, with absolute values per hour. A row whose value changes is marked unsent. The sync worker sends unsent rows in batches of at most 2000 rows per kind and 900 KiB of JSON, and marks exactly the sent values as sent. A repeated upload changes nothing, because the server stores absolute values. A `401` removes the token and returns the app to pairing. A `429` with `Retry-After` schedules one more sync after that delay. Without it, and on `5xx` and network errors, the worker retries with exponential backoff. A `400` or `413` halves the batch and tries again. A single row that is still refused is set aside, counted on the Privacy screen, and sent again only if its value changes. Other `4xx` responses stop the run.
+
+Usage events carry no record of a power loss. When the TV boots, or the screen turns on while it was already on, the open app session and screen-on interval end at the last event seen before. A TV that lost power is therefore not counted as on until the next boot.
+
+Pairing polls every 5 seconds and waits out a `Retry-After`. A code's lifetime is measured on the TV's clock from the moment it arrived. After six unclaimed codes the TV stops asking and waits for you.
+
+## Debug builds
+
+Debug builds have **Settings, Load demo week**, which replaces local data with a generated week, and they accept a plain `http://` server on the local network. Release builds have neither.

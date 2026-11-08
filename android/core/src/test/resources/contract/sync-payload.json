@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "sentAt": "2026-11-08T20:15:00+01:00",
+  "timezone": "Europe/Bratislava",
+  "usage": [
+    {
+      "day": "2026-11-08",
+      "hour": 19,
+      "packageName": "com.netflix.ninja",
+      "label": "Netflix",
+      "foregroundMs": 1800000
+    },
+    { "day": "2026-11-08", "hour": 19, "packageName": "com.google.android.youtube.tv", "foregroundMs": 600000 }
+  ],
+  "keys": [{ "day": "2026-11-08", "hour": 19, "keyClass": "dpad", "count": 42 }],
+  "screen": [{ "day": "2026-11-08", "hour": 19, "screenOnMs": 3000000 }]
+}

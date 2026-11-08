@@ -1,0 +1,92 @@
+---
+title: Getting started
+description: Deploy your own dashboard, install the APK on a TV and pair the two.
+sidebar:
+  order: 2
+---
+
+You need a Vercel account, a Supabase account and an Android TV or Google TV device with Android 8.0 (API 26) or newer. The free tiers are enough for a household.
+
+## 1. Deploy the dashboard
+
+<Tabs>
+  <Tab title="One click">
+    The deploy button in the repository README does four things. It copies the repository to your GitHub account, creates a Vercel project with `apps/web` as the root directory, installs the Supabase integration and asks for two values. The integration creates a Supabase project and sets `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY` and `POSTGRES_URL_NON_POOLING`.
+
+    <Steps>
+      <Step title="Click the deploy button">Sign in to Vercel and accept the Supabase integration.</Step>
+      <Step title="Enter the two values">`CRON_SECRET` protects the scheduled jobs. Generate it with `openssl rand -hex 32`. `NEXT_PUBLIC_SITE_URL` is the public address of the site, for example `https://streamtrack-tv.vercel.app`, without a trailing slash.</Step>
+      <Step title="Let the first build finish">The build runs `scripts/migrate.mjs`, which applies `supabase/migrations` in order and records them in `public.schema_migrations`. Later builds apply only new files.</Step>
+      <Step title="Set the Supabase Auth options">Follow [Supabase Auth settings](/guides/self-hosting#supabase-auth-settings).</Step>
+      <Step title="Create your account">Open the site, register with an email and a password, and confirm the email.</Step>
+    </Steps>
+
+  </Tab>
+  <Tab title="Manual">
+    <Steps>
+      <Step title="Create a Supabase project">Under Project Settings, API Keys, copy the project URL, the publishable key and a secret key. Under Connect, copy the direct connection string (port 5432).</Step>
+      <Step title="Create a Vercel project">Import the repository and set Root Directory to `apps/web`. The `vercel.json` there sets the install command (`cd ../.. && bun install --frozen-lockfile`) and the build command (`cd ../.. && bun run build`, which builds the schema package and then the app).</Step>
+      <Step title="Set the environment variables">At least `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `DATABASE_URL`, `NEXT_PUBLIC_SITE_URL` and `CRON_SECRET`. See [self-hosting](/guides/self-hosting).</Step>
+      <Step title="Deploy">The build applies the migrations.</Step>
+      <Step title="Set the Supabase Auth options and register">Follow [Supabase Auth settings](/guides/self-hosting#supabase-auth-settings), then create your account.</Step>
+    </Steps>
+
+    To run the migrations without a deployment, for example against a staging database:
+
+    ```bash
+    DATABASE_URL=postgres://... bun run --filter web migrate
+    ```
+
+  </Tab>
+</Tabs>
+
+## 2. Install the APK on the TV
+
+Download the APK from the [GitHub Releases](https://github.com/jantursky/StreamTrackTV/releases) page. The file is named `StreamTrackTV-<version>.apk`, for example `StreamTrackTV-1.0.0.apk`, and a `.sha256` file sits next to it. The app is not on Google Play, because Play is a poor fit for apps that use an accessibility service.
+
+<Tabs>
+  <Tab title="adb">
+    Enable developer options on the TV (Settings, About, tap the build number seven times), then enable network debugging.
+
+    ```bash
+    adb connect 192.168.1.50:5555
+    adb install StreamTrackTV-1.0.0.apk
+    ```
+
+    Replace the address with the TV's IP address and the file name with the version you downloaded. To update later, run `adb install -r StreamTrackTV-1.0.0.apk`.
+
+  </Tab>
+  <Tab title="Downloader app">
+    Install the Downloader app from the TV's app store. Allow it to install unknown apps in the TV settings. Open Downloader, enter the direct URL of the APK from the Releases page and follow the install prompt.
+  </Tab>
+</Tabs>
+
+## 3. Pair the TV
+
+<Steps>
+  <Step title="Open the app">
+    The pairing screen asks for the server address, then shows a six character code and a QR code. The QR code points to
+    `{server}/pair?code=`.
+  </Step>
+  <Step title="Enter the server address">
+    Type the address of your dashboard, for example `https://stats.example.com`. A release build needs `https://`.
+  </Step>
+  <Step title="Confirm in the dashboard">
+    Scan the QR code with your phone, or open `/pair` on the dashboard and type the code. The code is valid for 10
+    minutes.
+  </Step>
+  <Step title="Wait a moment">
+    The TV polls the server and receives its device token once. The app then shows the permission checklist.
+  </Step>
+</Steps>
+
+## 4. Grant the two permissions
+
+The app needs usage access and the accessibility service. A third item, the battery exemption, is optional but keeps syncs running on some TVs.
+
+1. **Usage access.** Settings, Apps, Special access, Usage access. Turn on StreamTrack TV. This gives per-app foreground time.
+2. **Accessibility service.** Settings, Accessibility, StreamTrack TV. Turn it on and accept the system warning. This gives remote keypress counts by class.
+
+The Setup screen has a button for each step that opens the right system page. If your TV hides a page, the app shows the matching `adb shell` command. See [the TV app guide](/guides/tv-app#granting-permissions-with-adb). [The TV app guide](/guides/tv-app) explains what each permission lets the app see.
+
+The first data reaches the dashboard after the next sync. The default interval is 15 minutes.

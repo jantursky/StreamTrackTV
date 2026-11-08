@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "cd ../.. && bun install --frozen-lockfile",
+  "buildCommand": "cd ../.. && bun run build",
+  "crons": [
+    { "path": "/api/cron/retention", "schedule": "17 3 * * *" },
+    { "path": "/api/cron/digest", "schedule": "0 7 * * 1" }
+  ]
+}

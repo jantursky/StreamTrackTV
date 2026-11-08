@@ -1,0 +1,28 @@
+---
+title: Troubleshooting
+description: Fixes for a killed accessibility service, battery optimization, missing data and expired pairing codes.
+---
+
+## The accessibility service keeps turning off
+
+Some TV vendors stop accessibility services to save memory, and a few switch them off after a reboot or a system update. Open Settings, Accessibility and turn it on again. Keypress counts are missing for the time the service was off. Usage and screen time are not affected, because they come from usage access.
+
+## Battery optimization
+
+If syncs stop after the TV has been idle, exclude the app from battery optimization. The Setup screen links to it, and `adb shell dumpsys deviceidle whitelist +com.apptiary.streamtracktv` does the same. Leaving it out is allowed, but syncs may run late.
+
+## No data arrives
+
+1. Open the Privacy screen on the TV to see what the next upload contains.
+2. Make sure the TV has internet access and the server address is correct.
+3. Confirm the device is listed under Devices and its token has not been revoked. A revoked or unknown token gets `unauthorized`, and the app returns to pairing.
+4. Look at the response codes in the Vercel function logs. `rate_limited` means the TV exceeded 60 syncs per hour, and it will retry later. `invalid_payload` means the app and server disagree about the format. See [upgrading](/guides/upgrading).
+5. Check the TV's clock and time zone. Hours are bucketed in the time zone the TV reports.
+
+## The pairing code expired
+
+Codes are valid for 10 minutes. When the poll answers `expired`, start again from the pairing screen and confirm the new code at `/pair`.
+
+## Sign-up works but the email never arrives
+
+Check the spam folder, then the SMTP settings in Supabase. The built-in sender is limited to a few emails per hour. If the link fails in a different browser, change the email templates as described in [self-hosting](/guides/self-hosting#supabase-auth-settings).

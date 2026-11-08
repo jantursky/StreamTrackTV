@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A deliberately generic launcher banner: a plain background and a bar-chart glyph, so the app does not stand
+     out on the TV home screen. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+  tools:ignore="VectorRaster"
+  android:width="320dp"
+  android:height="180dp"
+  android:viewportWidth="320"
+  android:viewportHeight="180">
+  <path
+    android:fillColor="#455A64"
+    android:pathData="M0,0h320v180h-320z" />
+  <group
+    android:scaleX="4.5"
+    android:scaleY="4.5"
+    android:translateX="106"
+    android:translateY="36">
+    <path
+      android:fillColor="#FFFFFF"
+      android:pathData="M5,9.2h3V19H5zM10.6,5h2.8v14h-2.8zM16.2,13H19v6h-2.8z" />
+  </group>
+</vector>

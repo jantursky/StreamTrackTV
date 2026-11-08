@@ -1,0 +1,42 @@
+---
+title: FAQ
+description: Short answers about devices, data, costs and limits.
+sidebar:
+  order: 7
+---
+
+## Which TVs work?
+
+Android TV and Google TV devices with Android 8.0 (API 26) or newer. Fire TV runs a fork of Android and is not tested.
+
+## Is there a hosted version?
+
+No. The public demo uses seeded data. Real data lives only in your own Vercel and Supabase accounts.
+
+## Does it see what I watch?
+
+No. It sees which app is in the foreground and for how long. It cannot see titles, channels or anything on the screen.
+
+## Why an accessibility service?
+
+Android gives apps no other way to count remote key presses. The service is limited to key events. See the [TV app guide](/guides/tv-app).
+
+## Why is it not on Google Play?
+
+Play puts strict rules on accessibility apps. The APK is signed in CI and published on GitHub Releases as `StreamTrackTV-<version>.apk`.
+
+## What does it cost?
+
+The software is free and open source. Vercel and Supabase free tiers fit a household. Check their current limits.
+
+## Can several TVs report to one account?
+
+Yes. Pair each TV separately. Devices can be grouped under household profiles.
+
+## What happens when the TV is offline?
+
+Hourly buckets stay on the TV and go out with the next successful sync. Sending them twice is harmless.
+
+## Can I move my data elsewhere?
+
+Export CSV or JSON from the settings page, or query your Supabase database directly.

@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="app_name">StreamTrack TV</string>
+
+  <!-- Navigation -->
+  <string name="nav_today">Today</string>
+  <string name="nav_setup">Setup</string>
+  <string name="nav_privacy">Privacy</string>
+  <string name="nav_settings">Settings</string>
+  <string name="nav_about">About</string>
+
+  <!-- Pairing -->
+  <string name="pair_server_title">Connect to your server</string>
+  <string name="pair_server_body">Enter the address of your StreamTrack TV web app, for example stats.example.com. Press the center button on the field to open the keyboard.</string>
+  <string name="pair_server_label">Server address</string>
+  <string name="pair_server_invalid">This is not a valid server address.</string>
+  <string name="pair_server_invalid_https">Use an https:// address.</string>
+  <string name="pair_continue">Continue</string>
+  <string name="pair_code_title">Pair this TV</string>
+  <string name="pair_code_body">Scan the code with your phone, or open %1$s and enter this code:</string>
+  <string name="pair_code_expires">Code expires in %1$s. A new one appears automatically.</string>
+  <string name="pair_code_waiting">Waiting for confirmation…</string>
+  <string name="pair_requesting">Asking the server for a code…</string>
+  <string name="pair_qr_description">QR code that opens the pairing page for code %1$s</string>
+  <string name="pair_change_server">Change server</string>
+  <string name="pair_retry">Try again</string>
+  <string name="pair_failed_network">The server cannot be reached. Check the address and the TV\'s network.</string>
+  <string name="pair_failed_rate_limited">The server asked to slow down. Try again in a minute.</string>
+  <string name="pair_failed_server">The server had a problem. Try again later.</string>
+  <string name="pair_failed_expired">No one confirmed a code for an hour, so the TV stopped asking for new ones. Start again when you are ready.</string>
+  <string name="pair_failed_rejected">The server refused the request. Is this a StreamTrack TV server?</string>
+
+  <!-- Today -->
+  <string name="today_title">Today</string>
+  <string name="today_screen_time">Screen time</string>
+  <string name="today_key_presses">Remote presses</string>
+  <string name="today_sync">Sync</string>
+  <string name="today_top_apps">Top apps</string>
+  <string name="today_no_apps">No app time recorded yet today.</string>
+  <string name="today_by_hour">Active hours</string>
+  <string name="today_no_windows">No active hours yet.</string>
+  <string name="today_windows">Active: %1$s</string>
+  <string name="today_goals">Daily limits</string>
+  <string name="today_no_goals">No limits set. Add them in Settings.</string>
+  <string name="today_insights">This week</string>
+  <string name="today_no_insights">No long sessions and no TV left on this week.</string>
+  <plurals name="today_binge">
+    <item quantity="one">%1$s for %2$d hour in a row, %3$s</item>
+    <item quantity="other">%1$s for %2$d hours in a row, %3$s</item>
+  </plurals>
+  <plurals name="today_idle">
+    <item quantity="one">Screen on with no remote use for %1$d hour, %2$s</item>
+    <item quantity="other">Screen on with no remote use for %1$d hours, %2$s</item>
+  </plurals>
+  <plurals name="today_setup_missing">
+    <item quantity="one">Setup is not finished: %1$d step is still open. Open Setup.</item>
+    <item quantity="other">Setup is not finished: %1$d steps are still open. Open Setup.</item>
+  </plurals>
+  <string name="goal_screen_time">Screen time</string>
+  <string name="goal_progress">%1$s of %2$s</string>
+  <string name="goal_on_track">On track</string>
+  <string name="goal_near_limit">Near limit</string>
+  <string name="goal_exceeded">Over limit</string>
+  <string name="key_class_dpad">D-Pad</string>
+  <string name="key_class_select">Select</string>
+  <string name="key_class_back">Back</string>
+  <string name="key_class_home">Home</string>
+  <string name="key_class_media">Media</string>
+  <string name="key_class_volume">Volume</string>
+  <string name="key_class_other">Other</string>
+
+  <!-- Sync status -->
+  <string name="sync_last">Last sync: %1$s</string>
+  <string name="sync_last_failed">Last attempt %1$s failed: %2$s</string>
+  <string name="sync_never">Not synced yet</string>
+  <string name="sync_next">Next sync: %1$s</string>
+  <string name="sync_next_unknown">Next sync: waiting for network</string>
+  <plurals name="sync_pending">
+    <item quantity="one">%1$d row waiting to upload</item>
+    <item quantity="other">%1$d rows waiting to upload</item>
+  </plurals>
+  <string name="sync_now">Sync now</string>
+
+  <!-- Setup checklist -->
+  <string name="setup_title">Setup</string>
+  <string name="setup_body">StreamTrack TV needs three permissions. Each one opens the TV\'s own settings screen; come back here when done.</string>
+  <string name="setup_usage_title">Usage access</string>
+  <string name="setup_usage_body">Lets the app read how long each app is in the foreground, and when the screen is on.</string>
+  <string name="setup_accessibility_title">Remote counter</string>
+  <string name="setup_accessibility_body">An accessibility service that counts remote presses by class. It cannot read the screen or what you type.</string>
+  <string name="setup_battery_title">Battery optimization</string>
+  <string name="setup_battery_body">Keeps the hourly sync running while the TV is in standby.</string>
+  <string name="setup_done">Done</string>
+  <string name="setup_needed">Needed</string>
+  <string name="setup_open">Open settings</string>
+  <string name="setup_manual">This TV has no settings screen for this. Run the command below from a computer with adb, then come back:</string>
+
+  <!-- Privacy -->
+  <string name="privacy_title">Privacy</string>
+  <string name="privacy_collected_title">What is collected</string>
+  <string name="privacy_collected_1">Foreground time per app and hour, with the app\'s name</string>
+  <string name="privacy_collected_2">Screen-on time per hour</string>
+  <string name="privacy_collected_3">Number of remote presses per hour and key class</string>
+  <string name="privacy_collected_4">The TV\'s time zone</string>
+  <string name="privacy_never_title">Never collected</string>
+  <string name="privacy_never_1">Which key was pressed, beyond its class</string>
+  <string name="privacy_never_2">Text you type, passwords or search queries</string>
+  <string name="privacy_never_3">Screen content, screenshots or window titles</string>
+  <string name="privacy_never_4">What you watch inside an app: titles, channels or URLs</string>
+  <string name="privacy_never_5">Location, microphone, camera, contacts or accounts</string>
+  <string name="privacy_never_6">Advertising IDs or any data for third parties</string>
+  <string name="privacy_payload_title">Next upload</string>
+  <plurals name="privacy_payload_body">
+    <item quantity="one">This is the exact JSON the next sync sends to your server, %1$d row. The time stamp is set when it is sent.</item>
+    <item quantity="other">This is the exact JSON the next sync sends to your server, %1$d rows. The time stamp is set when it is sent.</item>
+  </plurals>
+  <plurals name="privacy_rejected_rows">
+    <item quantity="one">The server refused %1$d row on its own. It was set aside and is only sent again if its value changes.</item>
+    <item quantity="other">The server refused %1$d rows one by one. They were set aside and are only sent again if their values change.</item>
+  </plurals>
+  <string name="privacy_payload_empty">Nothing is waiting to be uploaded.</string>
+
+  <!-- Settings -->
+  <string name="settings_title">Settings</string>
+  <string name="settings_interval">Sync interval</string>
+  <string name="settings_interval_helper">How often the TV uploads. Press to change.</string>
+  <string name="settings_screen_limit">Daily screen time limit</string>
+  <string name="settings_off">Off</string>
+  <string name="settings_theme">Theme</string>
+  <string name="settings_theme_dark">Dark</string>
+  <string name="settings_theme_light">Light</string>
+  <string name="settings_server">Server</string>
+  <string name="settings_server_helper">Changing the server unpairs this TV.</string>
+  <string name="settings_apps">Apps</string>
+  <string name="settings_apps_helper">Exclude apps from tracking or set a daily limit per app.</string>
+  <plurals name="settings_apps_value">
+    <item quantity="one">%1$d excluded</item>
+    <item quantity="other">%1$d excluded</item>
+  </plurals>
+  <string name="settings_unpair">Unpair this TV</string>
+  <string name="settings_unpair_helper">Stops syncing. Local data stays on the TV.</string>
+  <string name="settings_delete">Delete local data</string>
+  <string name="settings_delete_helper">Removes all hours stored on this TV. Data already on your server stays there.</string>
+  <string name="settings_demo">Load demo week</string>
+  <string name="settings_demo_helper">Debug builds only: replaces local data with a generated week.</string>
+  <string name="settings_run">Run</string>
+  <string name="confirm_unpair_title">Unpair this TV?</string>
+  <string name="confirm_unpair_body">The TV stops syncing and shows the pairing screen. To pair again you need a new code from your server.</string>
+  <string name="confirm_delete_title">Delete local data?</string>
+  <string name="confirm_delete_body">All usage hours, key counts and app names stored on this TV are removed. This cannot be undone.</string>
+  <string name="confirm_server_title">Change server?</string>
+  <string name="confirm_server_body">This TV will be unpaired from %1$s.</string>
+  <string name="confirm_yes">Confirm</string>
+  <string name="confirm_cancel">Cancel</string>
+  <string name="apps_title">Apps</string>
+  <string name="apps_body">Excluded apps are never recorded or uploaded, and their stored hours on this TV are removed.</string>
+  <string name="apps_tracked">Tracked</string>
+  <string name="apps_excluded">Excluded</string>
+  <string name="apps_limit">Limit: %1$s</string>
+  <string name="apps_empty">No apps seen yet.</string>
+  <string name="back">Back</string>
+
+  <!-- About -->
+  <string name="about_title">About</string>
+  <string name="about_version">Version %1$s (%2$d)</string>
+  <string name="about_body">Open-source usage analytics for Android TV. Your data goes only to the server you pair with.</string>
+  <string name="about_license">Released under the MIT License.</string>
+  <string name="about_fonts">Fonts: Inter and Inter Tight, SIL Open Font License 1.1.</string>
+</resources>

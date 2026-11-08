@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="canvas">#0C0A09</color>
+  <color name="logo_tile">#3DDC84</color>
+  <color name="logo_ink">#073042</color>
+  <color name="logo_cream">#FAFAF9</color>
+</resources>

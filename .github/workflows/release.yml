@@ -1,0 +1,168 @@
+name: Release
+
+# Pushing a version tag, `1.1.0` or `v1.1.0`, runs every check, then builds the signed
+# Android APK and publishes the `streamtrack-tv` package to npm with provenance. The two
+# jobs after `verify` are independent: a failed npm publish still leaves the GitHub
+# release with the APK, and the other way round.
+on:
+  push:
+    tags: ['[0-9]+.[0-9]+.[0-9]+', 'v[0-9]+.[0-9]+.[0-9]+']
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Tag matches the schema package and the Android app version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          schema=$(node -p "require('./packages/schema/package.json').version")
+          app=$(sed -n 's/^APP_VERSION_NAME=//p' android/gradle.properties | tr -d '[:space:]')
+          if [ "$version" != "$schema" ] || [ "$version" != "$app" ]; then
+            echo "Tag $GITHUB_REF_NAME must match packages/schema/package.json ($schema) and APP_VERSION_NAME in android/gradle.properties ($app)" >&2
+            exit 1
+          fi
+      - run: bun install --frozen-lockfile
+      - name: Format
+        run: bun run format:check
+      - name: Lint
+        run: bun run lint
+      - name: Build the schema package
+        run: bun run build:schema
+      - name: Typecheck
+        run: bun run typecheck
+      - name: Test with coverage
+        run: bun run test:coverage
+      - name: Build the web app
+        run: bun run build
+      - name: Check the schema package (publint, type resolution)
+        run: bun run lint:package
+      - name: Install the packed tarball and run it
+        run: bun run test:pack
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps
+      - name: End-to-end tests
+        run: bun run test:e2e
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Android unit tests, lint, coverage and formatting
+        working-directory: android
+        run: ./gradlew test lint koverVerify spotlessCheck
+
+  apk:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Decode the signing key
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          for name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then
+              echo "Repository secret $name is not set" >&2
+              exit 1
+            fi
+          done
+          keystore="$RUNNER_TEMP/release.keystore"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          echo "ANDROID_KEYSTORE_PATH=$keystore" >> "$GITHUB_ENV"
+      - name: Build the signed release APK
+        working-directory: android
+        run: ./gradlew assembleRelease
+      - name: Name the APK and write its checksum
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          name="StreamTrackTV-$version.apk"
+          mkdir -p dist
+          cp android/app/build/outputs/apk/release/app-release.apk "dist/$name"
+          (cd dist && sha256sum "$name" > "$name.sha256")
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "APK_NAME=$name" >> "$GITHUB_ENV"
+      - name: Create the GitHub release, or add the files to it
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          awk -v v="$VERSION" '
+            $0 ~ "^## \\[" v "\\]" { found = 1; next }
+            found && /^## \[/ { exit }
+            found && /^\[.*\]: / { exit }
+            found { print }
+          ' CHANGELOG.md > notes.md
+          if [ ! -s notes.md ]; then
+            echo "CHANGELOG.md has no section for $VERSION" >&2
+            exit 1
+          fi
+          echo "[npm](https://www.npmjs.com/package/streamtrack-tv/v/$VERSION)" >> notes.md
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "dist/$APK_NAME" "dist/$APK_NAME.sha256" --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" \
+              --notes-file notes.md "dist/$APK_NAME" "dist/$APK_NAME.sha256"
+          fi
+
+  npm:
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      # npm trusted publishing and provenance use the workflow's OIDC token.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm 11.5 or newer.
+      - run: npm install -g npm@11
+      - name: Skip a version that is already on npm
+        id: check
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if npm view "streamtrack-tv@$version" version > /dev/null 2>&1; then
+            echo "streamtrack-tv@$version is already published"
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.check.outputs.publish == 'true'
+        run: bun install --frozen-lockfile
+      - name: Build the package
+        if: steps.check.outputs.publish == 'true'
+        run: bun run build:schema
+      - name: Publish to npm
+        if: steps.check.outputs.publish == 'true'
+        working-directory: packages/schema
+        # The checks already ran in `verify`; prepublishOnly would repeat them.
+        run: npm publish --provenance --access public --ignore-scripts

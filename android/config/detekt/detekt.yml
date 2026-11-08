@@ -1,0 +1,34 @@
+# Overrides on top of the detekt defaults (buildUponDefaultConfig = true).
+
+naming:
+  # Files are named after their topic and often hold a small model next to its functions.
+  MatchingDeclarationName:
+    active: false
+  FunctionNaming:
+    ignoreAnnotated: ['Composable', 'Test']
+  TopLevelPropertyNaming:
+    constantPattern: '[A-Z][A-Za-z0-9_]*'
+
+complexity:
+  LongParameterList:
+    ignoreAnnotated: ['Composable']
+    # Wiring containers and action bundles list every dependency on purpose.
+    constructorThreshold: 12
+  LongMethod:
+    ignoreAnnotated: ['Composable', 'Test']
+  TooManyFunctions:
+    ignorePrivate: true
+    thresholdInFiles: 15
+    thresholdInClasses: 15
+
+style:
+  MaxLineLength:
+    maxLineLength: 140
+  MagicNumber:
+    excludes: ['**/test/**', '**/androidTest/**', '**/ui/**', '**/seed/**']
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+  UnusedPrivateMember:
+    ignoreAnnotated: ['Preview']
+  ReturnCount:
+    max: 3

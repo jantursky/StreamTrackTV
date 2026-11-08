@@ -1,0 +1,56 @@
+---
+title: Privacy and security
+description: Which data StreamTrack TV collects, what it never collects, and how tokens, row level security and retention work.
+sidebar:
+  order: 6
+---
+
+## Data collected
+
+| Data                    | Form                                                | Where it is stored |
+| ----------------------- | --------------------------------------------------- | ------------------ |
+| Foreground time per app | Package name, optional label, milliseconds per hour | `usage_buckets`    |
+| Remote key presses      | Key class and count per hour                        | `key_buckets`      |
+| Screen-on time          | Milliseconds per hour                               | `screen_buckets`   |
+| Time zone               | IANA name sent with each sync                       | `devices.timezone` |
+| Device                  | Name you chose, optional model, last seen time      | `devices`          |
+| Account                 | Email and password hash, handled by Supabase Auth   | Supabase Auth      |
+
+## Never collected
+
+- Raw key codes, typed text or passwords.
+- Screen content, window content or screenshots.
+- What is played inside an app.
+- Contacts, accounts, location or advertising IDs.
+- Anything from other devices on the network.
+
+The TV has a privacy screen that shows the exact payload before it is sent. The payload fields are listed in the [API reference](/api).
+
+## Tokens
+
+- A device token is random, 256 bits long, and returned to the TV once.
+- The server stores only a hash of it. A database leak does not reveal usable tokens.
+- A revoked device cannot be reactivated. Pair it again instead.
+- Pairing codes are short lived (10 minutes) and stored hashed. The poll token stays on the TV.
+
+## Row level security
+
+Every table has row level security, so a signed-in user can read and change only their own rows. The Supabase secret key bypasses these rules and is used only in the device API (sync and pairing, including claim and delivery), the share page, the cron routes and account deletion. Keep it out of browser code and public repositories.
+
+## Limits
+
+Request bodies are read with a byte cap (1 MiB for sync, 4 KiB for pairing) before parsing, then validated strictly with Zod and capped at 2000 rows per kind. A payload with raw key codes, or any field the schema does not know, is rejected. See the [rate limits](/api#rate-limits).
+
+Pages send a nonce-based Content Security Policy, HSTS, `X-Frame-Options: DENY` and `nosniff`. API responses send `default-src 'none'`. Export, deleting device data and deleting the account need a signed-in session. After sign-in, redirects accept local paths only.
+
+## Retention and deletion
+
+You choose how long buckets are kept (365 days by default), and a daily job removes older rows. You can delete one device's data or the whole account from the settings page. Because you host the database, you can also delete rows directly.
+
+## Share links
+
+A share link is a 256-bit token, stored hashed. It is read-only, lasts at most 30 days (you pick 1, 7 or 30) and can be revoked. A link scoped to one device shows only the apps used on that device. Shared pages show no goals, household members or settings and are not indexed by search engines. Anyone who holds the link can see the numbers.
+
+## Reporting a vulnerability
+
+Follow `SECURITY.md` in the repository.

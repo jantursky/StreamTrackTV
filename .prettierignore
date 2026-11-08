@@ -1,0 +1,16 @@
+dist/
+coverage/
+node_modules/
+bun.lock
+.next/
+.blume/
+.blume-verify/
+apps/docs/docs/_generated/
+test-results/
+playwright-report/
+android/**/build/
+android/.gradle/
+design/
+supabase/.temp/
+**/next-env.d.ts
+android/**/schemas/
