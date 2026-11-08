@@ -34,10 +34,11 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Format
         run: bun run format:check
-      - name: Lint
-        run: bun run lint
+      # Typed lint needs the schema package build output.
       - name: Build the schema package
         run: bun run build:schema
+      - name: Lint
+        run: bun run lint
       - name: Typecheck
         run: bun run typecheck
       - name: Test with coverage
