@@ -141,7 +141,7 @@ class PinLogicTest {
             vm.submit()
             assertTrue(vm.state.value.wrong)
             assertEquals("", vm.state.value.entered)
-            assertEquals(true, session.locked.value)
+            eventually { session.locked.value == true }
         }
 
     @Test

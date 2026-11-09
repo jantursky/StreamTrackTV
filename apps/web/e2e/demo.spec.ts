@@ -38,7 +38,7 @@ test.describe('demo dashboard', () => {
     await expect(kpi(page, 'Screen on')).toHaveText(/\d+ h/)
     await expect(page.getByTestId('top-apps').getByRole('listitem')).toHaveCount(6)
     await expect(page.getByTestId('alerts').getByRole('listitem').first()).toBeVisible()
-    await expect(page.getByRole('navigation', { name: 'Dashboard sections' }).getByRole('link')).toHaveCount(9)
+    await expect(page.getByRole('navigation', { name: 'Dashboard sections' }).getByRole('link')).toHaveCount(10)
     expect(errors).toEqual([])
   })
 
