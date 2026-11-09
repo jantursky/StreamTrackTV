@@ -56,3 +56,8 @@ apps/web/next-env.d.ts
 android/.kotlin/
 android/build-logic/.kotlin/
 android/build-logic/.gradle/
+
+# Release signing key and its passwords: never commit
+signing/
+*.keystore
+*.jks
