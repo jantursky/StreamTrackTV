@@ -28,7 +28,7 @@ StreamTrack TV shows you how your Android TV is really used. An app on the TV co
 - A PIN lock on the TV, with a security log (app opened, wrong PIN, Forgot PIN and more) that the dashboard shows on its Security page.
 - The dashboard (Next.js on Vercel, Postgres and Auth on Supabase) has an overview, calendar with compare, apps and categories, remote usage, hour-by-weekday heatmap, devices, household members, goals and limits, read-only share links, a weekly email digest, export and delete.
 - Demo mode uses seeded data and needs no sign-in, so you can look around before deploying: [streamtrack-tv.vercel.app/demo](https://streamtrack-tv.vercel.app/demo).
-- `streamtrack-tv` on npm holds the sync and pairing schemas as zod validators and TypeScript types. The dashboard uses it, and a test checks the Android contract fixtures against it.
+- `streamtrack-tv` on npm holds the sync, pairing, PIN reset and security event schemas as zod validators and TypeScript types. The dashboard uses it, and a test checks the Android contract fixtures against it.
 
 <a href="https://streamtrack-tv.vercel.app/demo/calendar">
   <picture>

@@ -23,6 +23,18 @@ If syncs stop after the TV has been idle, exclude the app from battery optimizat
 
 Codes are valid for 10 minutes. When the poll answers `expired`, start again from the pairing screen and confirm the new code at `/pair`.
 
+## I am locked out by wrong PIN tries
+
+Three wrong tries are free. After that the keypad waits 30 seconds, then longer, up to 15 minutes, and the wait survives closing the app. Wait it out, or use **Forgot PIN**.
+
+## The Forgot PIN code expired
+
+The code is valid for 10 minutes. When the TV says it expired, choose **Forgot PIN** again for a new code and confirm that one at `/pin-reset` with the account that owns the TV. Starting again replaces the old code, and you can start 5 times per hour.
+
+## Forgot PIN says the server cannot be reached
+
+The reset needs a paired TV and a network. Check the TV's connection and the server address in Settings, then try again. If the TV is not paired or the server stays unreachable, the only way back in is **Settings → Apps → StreamTrack TV → Clear data** (or `adb shell pm clear com.jantursky.streamtracktv`). That also removes the local history and the pairing, so pair the TV again afterwards.
+
 ## Sign-up works but the email never arrives
 
 Check the spam folder, then the SMTP settings in Supabase. The built-in sender is limited to a few emails per hour. If the link fails in a different browser, change the email templates as described in [self-hosting](/guides/self-hosting#supabase-auth-settings).

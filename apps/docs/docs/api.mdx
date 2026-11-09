@@ -110,6 +110,43 @@ Sent by the TV after each sync with the device token, for the security log. The 
 
 Unknown fields are refused, so nothing typed can be sent. The answer is `{ "accepted": n }` with the number of events that were new. A batch with one invalid event is refused as a whole with `400`.
 
+## POST /api/v1/pin-reset/start
+
+Sent by a paired TV with `Authorization: Bearer <deviceToken>` when the user chooses Forgot PIN. The body is an empty object, because the device is known from its token. The response is `201 Created`. Limit: 5 requests per device per hour. A new start replaces an open one, so only the newest code can be confirmed.
+
+```bash
+curl -X POST https://your-app.vercel.app/api/v1/pin-reset/start \
+  -H "Authorization: Bearer $DEVICE_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+```json
+{
+  "code": "H4TW9N",
+  "pollToken": "2b7e1f9c4a6d4e0f8c3a5d7b9e1f2a3c4d5e6f708192a3b4",
+  "expiresAt": "2026-11-08T19:25:00.000Z"
+}
+```
+
+The code has the same alphabet as a pairing code and expires 600 seconds (10 minutes) after the request. The TV shows it with a QR code. The owner opens `/pin-reset` on the dashboard, signs in with the account the TV is paired to and enters the code. A missing, unknown or revoked device token answers `401 unauthorized`.
+
+## POST /api/v1/pin-reset/poll
+
+Sent by the same TV every 5 seconds with the device token and the `pollToken` from `pin-reset/start`. The body is at most 4 KiB.
+
+| Field       | Type   | Rules                            |
+| ----------- | ------ | -------------------------------- |
+| `pollToken` | string | The token from `pin-reset/start` |
+
+The answer is `200 OK` with one of:
+
+- `{ "status": "pending" }`: the owner has not confirmed yet.
+- `{ "status": "confirmed" }`: returned once. The TV clears its PIN and opens the app.
+- `{ "status": "expired" }`: the code ran out or was already used. Start again.
+
+A poll token that does not belong to the calling device answers `404 not_found`. Limit: 240 polls per poll token per 10 minutes, which is twice the polling rate.
+
 ## POST /api/v1/pair/start
 
 Sent by the TV without a token. It opens a pairing request. The body is at most 4 KiB, and the response is `201 Created`. Limit: 10 requests per client address per hour.
@@ -258,12 +295,15 @@ Every non-2xx response has this shape:
 
 ## Rate limits
 
-| Endpoint                  | Limit                                                        |
-| ------------------------- | ------------------------------------------------------------ |
-| `POST /api/v1/sync`       | 60 per device per hour                                       |
-| `POST /api/v1/events`     | 60 per device per hour                                       |
-| `POST /api/v1/pair/start` | 10 per client address per hour                               |
-| `POST /api/v1/pair/poll`  | 240 per poll token and 960 per client address per 10 minutes |
-| Pairing confirmation      | 10 attempts per user per 10 minutes                          |
+| Endpoint                       | Limit                                                        |
+| ------------------------------ | ------------------------------------------------------------ |
+| `POST /api/v1/sync`            | 60 per device per hour                                       |
+| `POST /api/v1/events`          | 60 per device per hour                                       |
+| `POST /api/v1/pin-reset/start` | 5 per device per hour                                        |
+| `POST /api/v1/pin-reset/poll`  | 240 per poll token per 10 minutes                            |
+| `POST /api/v1/pair/start`      | 10 per client address per hour                               |
+| `POST /api/v1/pair/poll`       | 240 per poll token and 960 per client address per 10 minutes |
+| Pairing confirmation           | 10 attempts per user per 10 minutes                          |
+| PIN reset confirmation         | 10 attempts per user per 10 minutes                          |
 
 The limits are kept in Postgres, so they hold across serverless instances.

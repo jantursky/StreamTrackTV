@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-09
+
+### Changed
+
+- Documentation catches up with 1.1.0: the `streamtrack-tv` npm README and changelog list the PIN reset and security event schemas, the API reference covers `POST /api/v1/pin-reset/start`, `/poll` and `/events`, and the guides describe the History screen, the PIN reset page and PIN troubleshooting.
+- The upgrade guide now says that moving from 1.0.0 to 1.1.0 or later installs a new app: remove the old one, then pair and set a PIN again.
+- `test:pack` fails when an export of `streamtrack-tv` is not named in its README.
+- The APK has no code change. Only its version differs from 1.1.0.
+
 ## [1.1.0] - 2026-11-09
 
 ### Added

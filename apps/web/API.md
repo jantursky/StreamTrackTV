@@ -128,6 +128,57 @@ Request (`SyncPayload`), at most 1 MiB:
 `401` means the token is unknown or the device was revoked; the TV should stop syncing and offer to pair
 again. Limit: 60 syncs per device per hour.
 
+### `POST /api/v1/events`
+
+The TV sends new security events after each sync. Requires `Authorization: Bearer <deviceToken>`.
+
+Request (`EventsRequest`), at most 32 KiB:
+
+```json
+{
+  "schemaVersion": 1,
+  "events": [
+    {
+      "eventId": "0b9e5d8e-6f1a-4c52-9d0e-3a7c1b2d4e5f",
+      "type": "pin_wrong",
+      "at": "2026-11-08T21:15:00+01:00",
+      "value": 2
+    }
+  ]
+}
+```
+
+- 1 to 100 events. `type` is one of `SECURITY_EVENT_TYPES`. `value` is optional, 0 to 100000.
+- The server stores each `eventId` once per device, so a resent batch is harmless. An `at` more than one day ahead of the server clock is refused, and one invalid event refuses the whole batch with `400`.
+- `200 OK` answers `{ "accepted": n }` with the number of events that were new. Limit: 60 requests per device per hour.
+
+### `POST /api/v1/pin-reset/start`
+
+A paired TV asks for a code to show when the user chooses Forgot PIN. Requires
+`Authorization: Bearer <deviceToken>`. The request is an empty object (`PinResetStartRequest`).
+
+`201 Created` (`PinResetStartResponse`):
+
+```json
+{ "code": "H4TW9N", "pollToken": "<43 base64url characters>", "expiresAt": "2026-11-08T20:10:00.000Z" }
+```
+
+- The code has the pairing code alphabet and is valid for 10 minutes. The owner confirms it at `/pin-reset`.
+- A new start replaces an open one. Limit: 5 requests per device per hour.
+
+### `POST /api/v1/pin-reset/poll`
+
+The TV polls every 5 seconds with the token from `pin-reset/start`. Requires
+`Authorization: Bearer <deviceToken>`.
+
+Request (`PinResetPollRequest`): `{ "pollToken": "..." }`.
+
+`200 OK` (`PinResetPollResponse`), one of `{ "status": "pending" }`, `{ "status": "confirmed" }` (returned
+once, the TV clears its PIN) or `{ "status": "expired" }`.
+
+A poll token that belongs to another device or does not exist answers `404 not_found`. Limit: 240 polls
+per poll token per 10 minutes. Confirmation on the web is limited to 10 attempts per user per 10 minutes.
+
 ## Dashboard endpoints
 
 ### `GET /api/v1/export`

@@ -23,9 +23,16 @@ writeFileSync(join(app, 'package.json'), JSON.stringify({ name: 'pack-test', pri
 run('npm', ['install', '--no-audit', '--no-fund', join(work, filename)], app)
 writeFileSync(
   join(app, 'check.mjs'),
-  `import { syncPayloadSchema, SCHEMA_VERSION } from 'streamtrack-tv'
+  `import { readFileSync } from 'node:fs'
+import { syncPayloadSchema, SCHEMA_VERSION, pinResetStartResponseSchema, securityEventSchema } from 'streamtrack-tv'
+import * as pkg from 'streamtrack-tv'
 const ok = syncPayloadSchema.safeParse({ schemaVersion: SCHEMA_VERSION, sentAt: '2026-11-08T20:00:00Z', timezone: 'UTC', usage: [], keys: [], screen: [] })
 if (!ok.success) throw new Error('empty payload should be valid')
+if (typeof pinResetStartResponseSchema.safeParse !== 'function' || typeof securityEventSchema.safeParse !== 'function')
+  throw new Error('1.1.0 schemas are missing from the tarball')
+const readme = readFileSync(new URL('./node_modules/streamtrack-tv/README.md', import.meta.url), 'utf8')
+const undocumented = Object.keys(pkg).filter((name) => !readme.includes('\\\`' + name))
+if (undocumented.length > 0) throw new Error('README does not name: ' + undocumented.join(', '))
 console.log('pack test ok')
 `,
 )

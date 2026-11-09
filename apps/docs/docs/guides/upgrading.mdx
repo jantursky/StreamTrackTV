@@ -11,6 +11,10 @@ Pull the new version into your fork, or use Vercel's sync for the repository you
 
 Download the new APK from [GitHub Releases](https://github.com/jantursky/StreamTrackTV/releases) and install it (`StreamTrackTV-<version>.apk`) over the old one with `adb install -r`, or through Downloader. The pairing, the local data and the permissions are kept, since the signing key does not change.
 
+### From 1.0.0 to 1.1.0 or later
+
+Version 1.1.0 renamed the Android package to `com.jantursky.streamtracktv`, so it installs as a new app next to the old one and does not take over its data. Remove the old app, install the new APK, grant the permissions again, pair the TV again and set the PIN again. The old pairing and the local data on the TV are not carried over. Revoke the old device in the dashboard under Devices. Data already uploaded stays on the server.
+
 ## Wire format
 
 The sync payload carries `schemaVersion`. The server rejects a version it does not know with `invalid_payload`. A breaking change raises the number, and the changelog says which app and server versions work together. Upgrade the server first, then the TVs.

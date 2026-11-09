@@ -55,9 +55,14 @@ Package names, app display names and durations are the most specific data that l
 ## Screens
 
 - **Dashboard.** Today's summary, top apps and keypresses on the TV.
+- **History.** Past days from the data on the TV. See [History](#history).
 - **Privacy.** The exact JSON of the next upload, and the security events waiting to go with it.
 - **Setup.** The permission checklist described above.
 - **Settings.** Sync interval (15 minutes to 24 hours), a daily screen time limit, per-app limits, excluded apps, light or dark theme, the server address, unpairing and deleting local data.
+
+## History
+
+The History tab reads the hourly data already stored on the TV, so it needs no extra permission and sends nothing. Choose **Day**, **7 days** or **30 days**. **Previous day** and **Next day** move the end of the range, never past today, and **Today** jumps back. The day view draws one bar per hour, with screen-on time behind and app time in front. The longer views draw one bar per day. Select an app in the list to narrow app time to it, and select it again, or choose **Show all apps**, to clear the filter. Screen-on time and remote presses are not per app, so the filter leaves them as they are. Remote presses are listed by key class only, and apps excluded in Settings never appear.
 
 ## PIN lock and security log
 

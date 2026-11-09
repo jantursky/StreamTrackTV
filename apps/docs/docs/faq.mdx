@@ -37,6 +37,10 @@ Yes. Pair each TV separately. Devices can be grouped under household profiles.
 
 Hourly buckets stay on the TV and go out with the next successful sync. Sending them twice is harmless.
 
+## Does the PIN or the security log leave the TV?
+
+The PIN never does. It stays on the TV as a salted hash. The security log is the list of lock events (app opened, wrong PIN, wait started, Forgot PIN, PIN changed). It is uploaded with the sync so you can read it on the dashboard's Security page, and it never contains the PIN or any digit that was typed. The Privacy screen on the TV shows the events waiting to go. See [privacy and security](/privacy-and-security#security-events).
+
 ## Can I move my data elsewhere?
 
 Export CSV or JSON from the settings page, or query your Supabase database directly.
