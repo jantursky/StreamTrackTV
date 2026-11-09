@@ -20,6 +20,17 @@ export function createDemoSource(dataset: DemoDataset = (shared ??= generateDemo
     },
     goals: () => Promise.resolve(dataset.goals),
     shareLinks: () => Promise.resolve([]),
+    securityEvents: (filter) =>
+      Promise.resolve(
+        dataset.events
+          .filter(
+            (e) =>
+              (filter.deviceIds === null || filter.deviceIds.includes(e.deviceId)) &&
+              (filter.types === null || filter.types.includes(e.type)),
+          )
+          .sort((a, b) => b.at.localeCompare(a.at) || a.id.localeCompare(b.id))
+          .slice(0, filter.limit),
+      ),
     buckets: (span, deviceIds) =>
       Promise.resolve(selectBuckets(dataset.buckets, { deviceIds, from: span.from, to: span.to })),
   }

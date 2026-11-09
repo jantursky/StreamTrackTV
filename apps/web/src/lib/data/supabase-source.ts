@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { KEY_CLASSES } from 'streamtrack-tv'
+import { KEY_CLASSES, SECURITY_EVENT_TYPES } from 'streamtrack-tv'
 import { z } from 'zod'
 import { fetchAllRows, parseRow, parseRows } from '../supabase/query'
 import { pickTimeZone, todayIn } from '../time/days'
@@ -183,6 +183,34 @@ export function createSupabaseSource(client: SupabaseClient, userId: string, now
           .order('created_at'),
       )
       return rows.map((r) => ({ id: r.id, deviceId: r.device_id, expiresAt: r.expires_at, createdAt: r.created_at }))
+    },
+    async securityEvents(filter) {
+      if (filter.deviceIds?.length === 0 || filter.types?.length === 0) return []
+      let query = client
+        .from('security_events')
+        .select('id, device_id, type, occurred_at, received_at, value')
+        .eq('user_id', userId)
+      if (filter.deviceIds) query = query.in('device_id', filter.deviceIds)
+      if (filter.types) query = query.in('type', filter.types)
+      const rows = parseRows(
+        z.object({
+          id: z.string(),
+          device_id: z.string(),
+          type: z.enum(SECURITY_EVENT_TYPES),
+          occurred_at: z.string(),
+          received_at: z.string(),
+          value: z.number().nullable(),
+        }),
+        await query.order('occurred_at', { ascending: false }).order('id').limit(filter.limit),
+      )
+      return rows.map((r) => ({
+        id: r.id,
+        deviceId: r.device_id,
+        type: r.type,
+        at: r.occurred_at,
+        receivedAt: r.received_at,
+        value: r.value,
+      }))
     },
     async buckets(span, deviceIds) {
       if (deviceIds?.length === 0) return { usage: [], keys: [], screen: [] }

@@ -1,12 +1,12 @@
 # kotlinx.serialization: the plugin generates serializers that R8 must keep together with their
 # companion lookups. The library ships most rules itself; these cover the app's @Serializable types.
 -keepattributes RuntimeVisibleAnnotations,AnnotationDefault,InnerClasses,Signature
--keepclassmembers @kotlinx.serialization.Serializable class com.apptiary.streamtracktv.** {
+-keepclassmembers @kotlinx.serialization.Serializable class com.jantursky.streamtracktv.** {
     *** Companion;
     static *** INSTANCE;
     kotlinx.serialization.KSerializer serializer(...);
 }
--keepclasseswithmembers class com.apptiary.streamtracktv.** {
+-keepclasseswithmembers class com.jantursky.streamtracktv.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
 

@@ -1,4 +1,4 @@
-import type { KeyClass } from 'streamtrack-tv'
+import type { KeyClass, SecurityEventType } from 'streamtrack-tv'
 
 export const CATEGORIES = ['streaming', 'video', 'music', 'live-tv', 'games', 'kids', 'system', 'other'] as const
 export type Category = (typeof CATEGORIES)[number]
@@ -100,4 +100,23 @@ export interface ShareLink {
   deviceId: string | null
   expiresAt: string
   createdAt: string
+}
+
+/** One entry of the security log of a TV. `at` is the TV's clock, `receivedAt` the server's. */
+export interface SecurityEventRecord {
+  id: string
+  deviceId: string
+  type: SecurityEventType
+  at: string
+  receivedAt: string
+  /** Wrong tries so far (`pin_wrong`) or the wait in seconds (`pin_wait_started`). */
+  value: number | null
+}
+
+export interface SecurityEventFilter {
+  /** `null` means every TV. */
+  deviceIds: readonly string[] | null
+  /** `null` means every type. */
+  types: readonly SecurityEventType[] | null
+  limit: number
 }

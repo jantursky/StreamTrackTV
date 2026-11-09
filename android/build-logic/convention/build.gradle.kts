@@ -11,11 +11,11 @@ gradlePlugin {
     plugins {
         register("androidLibrary") {
             id = "streamtrack.android.library"
-            implementationClass = "com.apptiary.streamtracktv.buildlogic.AndroidLibraryConventionPlugin"
+            implementationClass = "com.jantursky.streamtracktv.buildlogic.AndroidLibraryConventionPlugin"
         }
         register("jvmLibrary") {
             id = "streamtrack.jvm.library"
-            implementationClass = "com.apptiary.streamtracktv.buildlogic.JvmLibraryConventionPlugin"
+            implementationClass = "com.jantursky.streamtracktv.buildlogic.JvmLibraryConventionPlugin"
         }
     }
 }

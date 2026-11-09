@@ -1,4 +1,14 @@
-import type { AppRecord, Buckets, Device, Goal, Member, Settings, ShareLink } from './types'
+import type {
+  AppRecord,
+  Buckets,
+  Device,
+  Goal,
+  Member,
+  SecurityEventFilter,
+  SecurityEventRecord,
+  Settings,
+  ShareLink,
+} from './types'
 
 export type SourceKind = 'demo' | 'live' | 'shared'
 
@@ -19,6 +29,8 @@ export interface DashboardSource {
   apps(deviceIds: readonly string[] | null): Promise<AppRecord[]>
   goals(): Promise<Goal[]>
   shareLinks(): Promise<ShareLink[]>
+  /** Security log of the household, newest first. Never part of a share link. */
+  securityEvents(filter: SecurityEventFilter): Promise<SecurityEventRecord[]>
   /** Buckets of the inclusive day span, for the given devices or all when `null`. */
   buckets(span: { from: string; to: string }, deviceIds: readonly string[] | null): Promise<Buckets>
 }
@@ -42,6 +54,7 @@ export function sharedSource(source: DashboardSource, deviceId: string | null): 
     apps: (ids) => source.apps(allowed(ids)),
     goals: () => Promise.resolve([]),
     shareLinks: () => Promise.resolve([]),
+    securityEvents: () => Promise.resolve([]),
     buckets: (span, ids) => source.buckets(span, allowed(ids)),
   }
 }

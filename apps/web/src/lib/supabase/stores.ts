@@ -1,7 +1,9 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { z } from 'zod'
+import type { EventsStore } from '../events/events'
 import type { IngestStore, RateLimiter } from '../ingest/ports'
 import type { PairingStore } from '../pairing/pairing'
+import type { PinResetStore } from '../pin-reset/pin-reset'
 import { parseRow, unwrap } from './query'
 
 /** Postgres unique violation. */
@@ -40,6 +42,15 @@ export function supabaseIngestStore(admin: SupabaseClient): IngestStore {
           p_screen: batch.screen,
         }),
       )
+    },
+  }
+}
+
+export function supabaseEventsStore(admin: SupabaseClient): EventsStore {
+  return {
+    async ingest(deviceId, events) {
+      const result = await admin.rpc('ingest_events', { p_device_id: deviceId, p_events: events })
+      return z.number().int().parse(unwrap(result))
     },
   }
 }
@@ -108,6 +119,67 @@ export function supabasePairingStore(admin: SupabaseClient): PairingStore {
     },
     async deliver(pairingId, tokenHash) {
       const result = await admin.rpc('deliver_pairing', { p_pairing_id: pairingId, p_token_hash: tokenHash })
+      return z.boolean().parse(unwrap(result))
+    },
+  }
+}
+
+const pinResetRow = z.object({
+  id: z.string(),
+  device_id: z.string(),
+  expires_at: z.string(),
+  confirmed_by: z.string().nullable(),
+  consumed_at: z.string().nullable(),
+})
+
+const toPinReset = (row: z.infer<typeof pinResetRow> | null) =>
+  row && {
+    id: row.id,
+    deviceId: row.device_id,
+    expiresAt: row.expires_at,
+    confirmedBy: row.confirmed_by,
+    consumedAt: row.consumed_at,
+  }
+
+const PIN_RESET_COLUMNS = 'id, device_id, expires_at, confirmed_by, consumed_at'
+
+export function supabasePinResetStore(admin: SupabaseClient): PinResetStore {
+  return {
+    async create(request) {
+      const result = await admin.rpc('start_pin_reset', {
+        p_device_id: request.deviceId,
+        p_code_hash: request.codeHash,
+        p_poll_token_hash: request.pollTokenHash,
+        p_expires_at: request.expiresAt,
+      })
+      return z.boolean().parse(unwrap(result))
+    },
+    async byPollTokenHash(pollTokenHash) {
+      return toPinReset(
+        parseRow(
+          pinResetRow,
+          await admin
+            .from('pin_reset_requests')
+            .select(PIN_RESET_COLUMNS)
+            .eq('poll_token_hash', pollTokenHash)
+            .maybeSingle(),
+        ),
+      )
+    },
+    async byCodeHash(codeHash) {
+      return toPinReset(
+        parseRow(
+          pinResetRow,
+          await admin.from('pin_reset_requests').select(PIN_RESET_COLUMNS).eq('code_hash', codeHash).maybeSingle(),
+        ),
+      )
+    },
+    async confirm(requestId, userId) {
+      const result = await admin.rpc('confirm_pin_reset', { p_request_id: requestId, p_user_id: userId })
+      return z.boolean().parse(unwrap(result))
+    },
+    async consume(requestId) {
+      const result = await admin.rpc('consume_pin_reset', { p_request_id: requestId })
       return z.boolean().parse(unwrap(result))
     },
   }

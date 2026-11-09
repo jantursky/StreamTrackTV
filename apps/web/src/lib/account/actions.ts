@@ -9,10 +9,16 @@ import { currentUser, type SessionUser } from '../auth/session'
 import { siteUrl } from '../env'
 import { createTranslator, type MessageKey, type Translate } from '../i18n/translate'
 import { confirmPairing } from '../pairing/pairing'
+import { confirmPinReset } from '../pin-reset/pin-reset'
 import { generateToken, sha256 } from '../security/tokens'
 import { isTimeZone } from '../time/days'
 import { createAdminClient, createSessionClient } from '../supabase/server'
-import { supabasePairingStore, supabaseRateLimiter } from '../supabase/stores'
+import {
+  supabaseIngestStore,
+  supabasePairingStore,
+  supabasePinResetStore,
+  supabaseRateLimiter,
+} from '../supabase/stores'
 import { unwrap } from '../supabase/query'
 import {
   categoryForm,
@@ -24,6 +30,7 @@ import {
   idForm,
   memberForm,
   pairForm,
+  pinResetForm,
   settingsForm,
   shareForm,
 } from './forms'
@@ -106,7 +113,7 @@ export async function deleteDeviceData(_: ActionState, form: FormData): Promise<
       await client.from('devices').select('name').eq('user_id', user.id).eq('id', input.id).maybeSingle(),
     ) as { name: string } | null
     if (device?.name !== input.confirm) return fail(t, 'common.invalid')
-    for (const table of ['usage_buckets', 'key_buckets', 'screen_buckets']) {
+    for (const table of ['usage_buckets', 'key_buckets', 'screen_buckets', 'security_events']) {
       unwrap(await client.from(table).delete().eq('user_id', user.id).eq('device_id', input.id))
     }
     return ok(t, 'devices.dataDeleted')
@@ -211,6 +218,24 @@ export async function pairDevice(_: ActionState, form: FormData): Promise<Action
     if (result.status === 'paired') return { status: 'ok', message: t('pair.paired', { name: result.deviceName }) }
     if (result.status === 'rate_limited') return fail(t, 'pair.rateLimited')
     return fail(t, result.status === 'expired' ? 'pair.expired' : 'pair.invalid')
+  })
+}
+
+/** The owner confirms the PIN reset code shown on a TV; the TV then clears its own PIN. */
+export async function resetTvPin(_: ActionState, form: FormData): Promise<ActionState> {
+  return run(form, pinResetForm, async (input, { user, t }) => {
+    const admin = createAdminClient()
+    if (admin === null) return fail(t, 'common.failed')
+    const result = await confirmPinReset(input.code, user.id, {
+      store: supabasePinResetStore(admin),
+      devices: supabaseIngestStore(admin),
+      limiter: supabaseRateLimiter(admin),
+      now: () => new Date(),
+    })
+    if (result.status === 'confirmed') return ok(t, 'pinReset.done')
+    if (result.status === 'rate_limited') return fail(t, 'pinReset.rateLimited')
+    if (result.status === 'forbidden') return fail(t, 'pinReset.forbidden')
+    return fail(t, result.status === 'expired' ? 'pinReset.expired' : 'pinReset.invalid')
   })
 }
 

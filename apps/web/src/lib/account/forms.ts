@@ -72,6 +72,7 @@ export const shareForm = z.object({
 export const deleteAccountForm = z.object({ confirm: z.literal('DELETE') })
 
 export const pairForm = z.object({ code: z.string().trim().min(1).max(20) })
+export const pinResetForm = pairForm
 
 /** Plain object of the string fields of a form, ready for a zod schema. */
 export function formFields(form: FormData): Record<string, string> {

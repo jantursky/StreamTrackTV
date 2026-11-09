@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.apptiary.streamtracktv.data"
+    namespace = "com.jantursky.streamtracktv.data"
 }
 
 room {

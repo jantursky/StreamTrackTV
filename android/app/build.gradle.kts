@@ -11,14 +11,14 @@ val defaultServerUrl = providers.gradleProperty("DEFAULT_SERVER_URL").orElse("")
 val keystorePath = providers.environmentVariable("ANDROID_KEYSTORE_PATH").orNull
 
 android {
-    namespace = "com.apptiary.streamtracktv"
+    namespace = "com.jantursky.streamtracktv"
     compileSdk =
         libs.versions.compileSdk
             .get()
             .toInt()
 
     defaultConfig {
-        applicationId = "com.apptiary.streamtracktv"
+        applicationId = "com.jantursky.streamtracktv"
         minSdk =
             libs.versions.minSdk
                 .get()

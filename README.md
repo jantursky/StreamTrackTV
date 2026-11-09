@@ -25,6 +25,7 @@ StreamTrack TV shows you how your Android TV is really used. An app on the TV co
 
 - The TV app (Kotlin, Compose for TV) counts remote presses by class (D-pad, OK, Back, Home, media, volume), reads foreground app time from usage stats, tracks screen-on time and keeps hourly buckets in a local Room database. It works offline and syncs on a schedule you set, from 15 minutes to 24 hours.
 - A privacy screen on the TV shows the exact JSON the next sync will send, and the list of what is never collected.
+- A PIN lock on the TV, with a security log (app opened, wrong PIN, Forgot PIN and more) that the dashboard shows on its Security page.
 - The dashboard (Next.js on Vercel, Postgres and Auth on Supabase) has an overview, calendar with compare, apps and categories, remote usage, hour-by-weekday heatmap, devices, household members, goals and limits, read-only share links, a weekly email digest, export and delete.
 - Demo mode uses seeded data and needs no sign-in, so you can look around before deploying: [streamtrack-tv.vercel.app/demo](https://streamtrack-tv.vercel.app/demo).
 - `streamtrack-tv` on npm holds the sync and pairing schemas as zod validators and TypeScript types. The dashboard uses it, and a test checks the Android contract fixtures against it.
@@ -46,6 +47,7 @@ StreamTrack TV shows you how your Android TV is really used. An app on the TV co
 3. Open the app, enter your dashboard URL, and note the code and QR it shows.
 4. Sign in to the dashboard, open `/pair`, and enter the code. The TV picks up its device token a few seconds later.
 5. Grant usage access and enable the accessibility service when the checklist asks. Data shows up after the next sync.
+6. Optional: turn on a PIN in the TV app (Settings → PIN lock). If you forget it, choose Forgot PIN on the lock screen, then open `/pin-reset` on the dashboard while signed in and enter the code shown on the TV.
 
 To run only the dashboard with demo data, set `DEMO_ONLY=1` and no Supabase variables.
 

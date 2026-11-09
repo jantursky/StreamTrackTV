@@ -1,6 +1,6 @@
 import type { KeyClass } from 'streamtrack-tv'
 import { addDays, weekdayIndex } from '../time/days'
-import type { AppRecord, Buckets, Device, Goal, KeyRow, Member, Settings } from '../data/types'
+import type { AppRecord, Buckets, Device, Goal, KeyRow, Member, SecurityEventRecord, Settings } from '../data/types'
 import { createRandom, type Random } from './prng'
 
 export const DEMO_TODAY = '2026-11-08'
@@ -15,6 +15,7 @@ export interface DemoDataset {
   apps: AppRecord[]
   goals: Goal[]
   buckets: Buckets
+  events: SecurityEventRecord[]
 }
 
 const MINUTE = 60_000
@@ -220,6 +221,40 @@ function dayHours(random: Random, profile: Profile, day: string): Hour[] {
 }
 
 /**
+ * A short story for the Security page: the TV opens normally, then three wrong PINs, the wait, Forgot PIN
+ * and the reset that follows, then a new PIN. Times are fixed on the demo day.
+ */
+function demoEvents(today: string): SecurityEventRecord[] {
+  const deviceId = 'demo-living-room'
+  const at = (day: string, time: string) => `${day}T${time}Z`
+  const yesterday = addDays(today, -1)
+  const story: [string, string, SecurityEventRecord['type'], number | null][] = [
+    [yesterday, '17:58:10', 'app_opened', null],
+    [yesterday, '17:58:11', 'lock_shown', null],
+    [yesterday, '17:58:31', 'unlocked', null],
+    [today, '21:12:02', 'app_opened', null],
+    [today, '21:12:03', 'lock_shown', null],
+    [today, '21:12:20', 'pin_wrong', 1],
+    [today, '21:12:26', 'pin_wrong', 2],
+    [today, '21:12:33', 'pin_wrong', 3],
+    [today, '21:12:33', 'pin_wait_started', 30],
+    [today, '21:13:15', 'pin_wrong', 4],
+    [today, '21:13:15', 'pin_wait_started', 60],
+    [today, '21:14:30', 'forgot_pin_opened', null],
+    [today, '21:16:45', 'pin_reset_confirmed', null],
+    [today, '21:17:20', 'pin_enabled', null],
+  ]
+  return story.map(([day, time, type, value], index) => ({
+    id: `demo-event-${index + 1}`,
+    deviceId,
+    type,
+    at: at(day, time),
+    receivedAt: at(day, time),
+    value,
+  }))
+}
+
+/**
  * A believable household: two TVs, eight apps in three categories, evening peaks, weekend binges and a
  * few nights where a TV stayed on. Pure and deterministic for a given seed, so screenshots and e2e tests
  * always see the same numbers.
@@ -254,5 +289,6 @@ export function generateDemoDataset(seed = DEMO_SEED, today = DEMO_TODAY, weeks 
     apps: APPS,
     goals: GOALS,
     buckets,
+    events: demoEvents(today),
   }
 }

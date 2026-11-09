@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.apptiary.streamtracktv.ui"
+    namespace = "com.jantursky.streamtracktv.ui"
     buildFeatures {
         compose = true
     }
@@ -26,6 +26,7 @@ dependencies {
     debugImplementation(libs.compose.ui.tooling)
 
     testImplementation(libs.kotlin.test)
+    testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.compose.ui.test.junit4)

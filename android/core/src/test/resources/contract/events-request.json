@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "events": [
+    { "eventId": "0b9a3a52-6f0c-4b8e-9a3e-5d2f1c7e8a10", "type": "app_opened", "at": "2026-11-09T10:15:00Z" },
+    {
+      "eventId": "6c1f0a77-2c3d-4e5f-8a9b-0c1d2e3f4a5b",
+      "type": "pin_wrong",
+      "at": "2026-11-09T10:15:20Z",
+      "value": 3
+    },
+    {
+      "eventId": "f2e1d0c9-b8a7-4655-9433-221100ffeedd",
+      "type": "pin_wait_started",
+      "at": "2026-11-09T10:15:21Z",
+      "value": 30
+    }
+  ]
+}

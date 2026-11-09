@@ -4,6 +4,7 @@
 
   <!-- Navigation -->
   <string name="nav_today">Today</string>
+  <string name="nav_history">History</string>
   <string name="nav_setup">Setup</string>
   <string name="nav_privacy">Privacy</string>
   <string name="nav_settings">Settings</string>
@@ -56,6 +57,51 @@
     <item quantity="one">Setup is not finished: %1$d step is still open. Open Setup.</item>
     <item quantity="other">Setup is not finished: %1$d steps are still open. Open Setup.</item>
   </plurals>
+  <string name="history_title">History</string>
+  <string name="history_range_day">Day</string>
+  <string name="history_range_week">7 days</string>
+  <string name="history_range_month">30 days</string>
+  <string name="history_previous">Previous day</string>
+  <string name="history_next">Next day</string>
+  <string name="history_today">Today</string>
+  <string name="history_foreground">App time</string>
+  <string name="history_by_hour">By hour</string>
+  <string name="history_by_day">By day</string>
+  <string name="history_legend">Screen on · app time</string>
+  <string name="history_apps">Apps</string>
+  <string name="history_filter_hint">Select an app to see only its time.</string>
+  <string name="history_filtered">Showing only %1$s</string>
+  <string name="history_clear_filter">Show all apps</string>
+  <string name="history_keys">Remote presses by key</string>
+  <string name="history_no_keys">No remote presses in this range.</string>
+  <string name="history_empty">Nothing was recorded in this range. Step to another day.</string>
+  <!-- PIN lock -->
+  <string name="pin_lock_title">Enter your PIN</string>
+  <string name="pin_lock_hint">StreamTrack TV is locked.</string>
+  <string name="pin_wrong">Wrong PIN. Try again.</string>
+  <string name="pin_wait">Too many tries. Try again in %1$s.</string>
+  <string name="pin_too_short">Use 4 to 8 digits.</string>
+  <string name="pin_mismatch">The two PINs differ. Start again.</string>
+  <string name="pin_forgot">Forgot PIN</string>
+  <string name="pin_flow_current">Enter your current PIN</string>
+  <string name="pin_flow_new">Choose a new PIN</string>
+  <string name="pin_flow_repeat">Enter the new PIN again</string>
+  <string name="pin_flow_hint">4 to 8 digits. Use the keypad or the number keys on your remote.</string>
+  <string name="pin_reset_title">Reset your PIN</string>
+  <string name="pin_reset_requesting">Asking the server for a code…</string>
+  <string name="pin_reset_body">Scan the code with your phone, or open the reset page on your StreamTrack TV site and enter the code. Sign in with the account this TV is paired to.</string>
+  <string name="pin_reset_waiting">Waiting for confirmation…</string>
+  <string name="pin_reset_qr_description">QR code that opens the PIN reset page for code %1$s</string>
+  <string name="pin_reset_failed_unpaired">This TV is not paired, or the server no longer knows it, so it cannot ask for a reset. Clearing the app\'s data in the TV\'s system settings removes the PIN.</string>
+  <string name="pin_reset_failed_network">The server cannot be reached. Check the connection and try again. Your PIN is unchanged.</string>
+  <string name="pin_reset_failed_rate_limited">The server asked to slow down. Try again in a few minutes.</string>
+  <string name="pin_reset_failed_server">The server had a problem. Try again later.</string>
+  <string name="pin_reset_failed_expired">The code expired before anyone confirmed it. Your PIN is unchanged.</string>
+  <string name="settings_pin">PIN lock</string>
+  <string name="settings_pin_helper">Ask for a PIN when the app opens or comes back.</string>
+  <string name="settings_pin_on">On</string>
+  <string name="settings_pin_change">Change PIN</string>
+  <string name="settings_pin_turn_off">Turn off PIN</string>
   <string name="goal_screen_time">Screen time</string>
   <string name="goal_progress">%1$s of %2$s</string>
   <string name="goal_on_track">On track</string>
@@ -94,6 +140,8 @@
   <string name="setup_needed">Needed</string>
   <string name="setup_open">Open settings</string>
   <string name="setup_manual">This TV has no settings screen for this. Run the command below from a computer with adb, then come back:</string>
+  <string name="setup_qr_hint">Scan the code with your phone to copy the command, then paste it into a terminal.</string>
+  <string name="setup_qr_description">QR code holding the adb command</string>
 
   <!-- Privacy -->
   <string name="privacy_title">Privacy</string>
@@ -102,6 +150,7 @@
   <string name="privacy_collected_2">Screen-on time per hour</string>
   <string name="privacy_collected_3">Number of remote presses per hour and key class</string>
   <string name="privacy_collected_4">The TV\'s time zone</string>
+  <string name="privacy_collected_5">Security events: when the app is opened, wrong PIN tries and PIN changes, with the time</string>
   <string name="privacy_never_title">Never collected</string>
   <string name="privacy_never_1">Which key was pressed, beyond its class</string>
   <string name="privacy_never_2">Text you type, passwords or search queries</string>
@@ -109,6 +158,7 @@
   <string name="privacy_never_4">What you watch inside an app: titles, channels or URLs</string>
   <string name="privacy_never_5">Location, microphone, camera, contacts or accounts</string>
   <string name="privacy_never_6">Advertising IDs or any data for third parties</string>
+  <string name="privacy_never_7">Your PIN or any digit you type on the lock screen</string>
   <string name="privacy_payload_title">Next upload</string>
   <plurals name="privacy_payload_body">
     <item quantity="one">This is the exact JSON the next sync sends to your server, %1$d row. The time stamp is set when it is sent.</item>
@@ -119,6 +169,12 @@
     <item quantity="other">The server refused %1$d rows one by one. They were set aside and are only sent again if their values change.</item>
   </plurals>
   <string name="privacy_payload_empty">Nothing is waiting to be uploaded.</string>
+  <string name="privacy_events_title">Security events waiting</string>
+  <string name="privacy_events_empty">No security events are waiting to be uploaded.</string>
+  <plurals name="privacy_events_body">
+    <item quantity="one">%1$d security event is waiting. This is exactly what the server will receive:</item>
+    <item quantity="other">%1$d security events are waiting. This is exactly what the server will receive:</item>
+  </plurals>
 
   <!-- Settings -->
   <string name="settings_title">Settings</string>

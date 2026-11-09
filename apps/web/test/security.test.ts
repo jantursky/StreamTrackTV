@@ -87,6 +87,7 @@ describe('redirect targets', () => {
     expect(isProtectedPath('/app')).toBe(true)
     expect(isProtectedPath('/app/settings')).toBe(true)
     expect(isProtectedPath('/pair')).toBe(true)
+    expect(isProtectedPath('/pin-reset')).toBe(true)
     expect(isProtectedPath('/reset-password')).toBe(true)
     expect(isProtectedPath('/apps')).toBe(false)
     expect(isProtectedPath('/demo')).toBe(false)

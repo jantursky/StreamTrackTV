@@ -16,6 +16,15 @@ export const LIMITS = {
   minTokenLength: 32,
   pairCodeLength: 6,
   pairCodeTtlSeconds: 600,
+  pinMinLength: 4,
+  pinMaxLength: 8,
+  pinResetTtlSeconds: 600,
+  maxEventsPerBatch: 100,
+  maxEventValue: 100_000,
+  /** Newest events the TV keeps. */
+  maxStoredEvents: 500,
+  /** How far ahead of the server clock an event time may be, in milliseconds. */
+  maxEventFutureMs: 86_400_000,
 } as const
 
 /** Characters of a pairing code: uppercase letters and digits without the look-alikes I, O, 0 and 1. */
@@ -108,6 +117,70 @@ export const pairPollResponseSchema = z.discriminatedUnion('status', [
   z.object({ status: z.literal('claimed'), deviceToken: z.string().min(LIMITS.minTokenLength) }),
 ])
 export type PairPollResponse = z.infer<typeof pairPollResponseSchema>
+
+/**
+ * Body of `POST /api/v1/pin-reset/start`, sent by a paired TV (device token) that shows "Forgot PIN".
+ * It carries nothing: the device is known from its token.
+ */
+export const pinResetStartRequestSchema = z.strictObject({})
+export type PinResetStartRequest = z.infer<typeof pinResetStartRequestSchema>
+
+/** Same shape as a pairing code: the owner types or scans `code` on the web, the TV polls with `pollToken`. */
+export const pinResetStartResponseSchema = z.object({
+  code: pairCode,
+  pollToken: z.string().min(LIMITS.minTokenLength),
+  expiresAt: z.iso.datetime({ offset: true }),
+})
+export type PinResetStartResponse = z.infer<typeof pinResetStartResponseSchema>
+
+/** Body of `POST /api/v1/pin-reset/poll`, sent by the same TV until the owner confirms on the web. */
+export const pinResetPollRequestSchema = z.strictObject({ pollToken: z.string().min(LIMITS.minTokenLength) })
+export type PinResetPollRequest = z.infer<typeof pinResetPollRequestSchema>
+
+/** `confirmed` is returned once; the TV then clears its PIN. */
+export const pinResetPollResponseSchema = z.discriminatedUnion('status', [
+  z.object({ status: z.literal('pending') }),
+  z.object({ status: z.literal('expired') }),
+  z.object({ status: z.literal('confirmed') }),
+])
+export type PinResetPollResponse = z.infer<typeof pinResetPollResponseSchema>
+
+/** What the TV records at its lock screen and in its PIN settings. Never anything typed. */
+export const SECURITY_EVENT_TYPES = [
+  'app_opened',
+  'lock_shown',
+  'pin_wrong',
+  'pin_wait_started',
+  'unlocked',
+  'forgot_pin_opened',
+  'pin_reset_confirmed',
+  'pin_enabled',
+  'pin_changed',
+  'pin_disabled',
+] as const
+export type SecurityEventType = (typeof SECURITY_EVENT_TYPES)[number]
+
+/**
+ * One event. `value` is the wrong tries so far for `pin_wrong` and the wait in seconds for `pin_wait_started`.
+ * `eventId` is made on the TV so a resent batch does not store an event twice.
+ */
+export const securityEventSchema = z.strictObject({
+  eventId: z.uuid(),
+  type: z.enum(SECURITY_EVENT_TYPES),
+  at: z.iso.datetime({ offset: true }),
+  value: z.number().int().min(0).max(LIMITS.maxEventValue).optional(),
+})
+export type SecurityEvent = z.infer<typeof securityEventSchema>
+
+/** Body of `POST /api/v1/events`, sent with the device token after the usage sync. */
+export const eventsRequestSchema = z.strictObject({
+  schemaVersion: z.literal(SCHEMA_VERSION),
+  events: z.array(securityEventSchema).min(1).max(LIMITS.maxEventsPerBatch),
+})
+export type EventsRequest = z.infer<typeof eventsRequestSchema>
+
+export const eventsResponseSchema = z.object({ accepted: z.number().int().min(0) })
+export type EventsResponse = z.infer<typeof eventsResponseSchema>
 
 /** Shape of every non-2xx response of the API. */
 export const apiErrorSchema = z.object({

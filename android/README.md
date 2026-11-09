@@ -79,7 +79,7 @@ On first start the app asks for the server address, shows a 6-character code and
 The **Setup** screen links to each settings page. Some TVs hide these pages; the app then shows the matching command, and you can run them yourself:
 
 ```sh
-PKG=com.apptiary.streamtracktv
+PKG=com.jantursky.streamtracktv
 
 # Usage access: foreground time per app and screen-on time
 adb shell appops set $PKG GET_USAGE_STATS allow
@@ -87,7 +87,7 @@ adb shell appops set $PKG GET_USAGE_STATS allow
 # Remote counter (accessibility service). This replaces the list of enabled services;
 # if others are enabled, read the list first and append ours with a colon.
 adb shell settings get secure enabled_accessibility_services
-adb shell settings put secure enabled_accessibility_services $PKG/com.apptiary.streamtracktv.collector.KeyPressService
+adb shell settings put secure enabled_accessibility_services $PKG/.collector.KeyPressService
 
 # Battery optimization exemption, so syncing continues in standby
 adb shell dumpsys deviceidle whitelist +$PKG
@@ -98,6 +98,20 @@ adb shell dumpsys deviceidle whitelist +$PKG
 Debug builds have **Settings → Load demo week**. It replaces local data with a generated week (a binge, a TV left on, several apps) so every screen can be previewed without real use. Release builds do not contain it.
 
 Debug builds also accept a plain `http://` server on the local network, for example `http://10.0.2.2:3000` from the emulator. Release builds require `https://`.
+
+### History
+
+The **History** tab reads the same hourly buckets that sync uses, so it needs no extra permission and sends nothing. Choose **Day**, **7 days** or **30 days**; **Previous day** and **Next day** move the end of the range (never past today) and **Today** jumps back. The day view draws one bar per hour (screen on behind, app time in front); the longer views draw one bar per day. Select an app in the list to narrow app time to it, and select it again, or choose **Show all apps**, to clear the filter. Screen-on time and remote presses are not per app, so the filter leaves them as they are. Remote presses are listed by key class only. Apps excluded in Settings never appear.
+
+### PIN lock
+
+**Settings → PIN lock** asks for a 4 to 8 digit PIN, entered on an on-screen keypad that works with the D-pad. Only a salted PBKDF2 hash is stored, on the TV. Once a PIN is on, the app asks for it on every start and whenever it leaves the screen and comes back, including after opening system settings from **Setup**. Three wrong tries are free; after that the keypad waits 30 seconds, doubling up to 15 minutes. The wait survives restarts and clock changes. Change or turn off the PIN in Settings (both ask for the current PIN). The app is also hidden from the recent apps list.
+
+#### Security log
+
+The lock and the PIN settings write to a bounded log in the app's Room database (table `security_events`, newest 500, oldest dropped first, sent or not). Each sync run uploads the unsent ones, oldest first, in batches of 100 to `POST /api/v1/events` with the device token, and marks them sent only after the server accepts them. A failed upload, an offline TV or a server without the route keeps them for the next run and never fails the usage sync; a batch the server refuses as invalid is halved and a single refused event is set aside, like usage rows. Events carry a random `eventId`, so a batch whose answer got lost is not stored twice. `app opened` is written once per process, not on every return from the background. If the TV is unpaired the log stays on the TV. Clearing the app's data deletes events that were not uploaded yet. The dashboard shows them on its Security page.
+
+**Forgot PIN** on the lock screen shows a short code and a QR code. Open the link (`/pin-reset`) on the web, sign in as the account that owns this TV and confirm the code; the TV polls, clears the PIN and unlocks. This needs a paired TV and a server that has the `pin-reset` endpoints and migration. If the TV is not paired or the server is unreachable, the only way back in is **Settings → Apps → StreamTrack TV → Clear data** (or `adb shell pm clear com.jantursky.streamtracktv`), which also removes local history and pairing.
 
 ## Architecture
 
@@ -132,15 +146,17 @@ Collected, per local hour:
 - screen-on time
 - number of remote presses per key class: D-Pad, select, back, home, media, volume, other
 - the TV's time zone, sent with each upload
+- security events, each a type and a time: app opened, lock screen shown, wrong PIN (with the wrong tries so far), wait started (with its seconds), unlocked, Forgot PIN opened, PIN reset confirmed, PIN turned on, changed or off
 
 Never collected:
 
 - which key was pressed beyond its class; key codes are discarded in the accessibility service
 - typed text, screen content, window titles or screenshots; the service cannot read window content and receives no accessibility events
 - what is watched inside an app
+- the PIN, any digit typed on the lock screen or the PIN hash
 - location, microphone, camera, contacts, accounts or advertising IDs
 
-The **Privacy** screen on the TV shows the exact JSON of the next upload. Excluded apps (Settings → Apps) are neither recorded nor uploaded, and their stored hours are deleted. App data is excluded from cloud backup and device transfer.
+The **Privacy** screen on the TV shows the exact JSON of the next upload and the exact JSON of the security events waiting to go with it. Excluded apps (Settings → Apps) are neither recorded nor uploaded, and their stored hours are deleted. App data is excluded from cloud backup and device transfer.
 
 ## Tests and quality gates
 

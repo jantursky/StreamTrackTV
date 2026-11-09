@@ -23,7 +23,7 @@ On first start the app asks for the server address, then shows a 6-character cod
 Some TVs hide the settings pages. The app then shows the matching command, and you can run them yourself:
 
 ```bash
-PKG=com.apptiary.streamtracktv
+PKG=com.jantursky.streamtracktv
 
 # Usage access
 adb shell appops set $PKG GET_USAGE_STATS allow
@@ -31,7 +31,7 @@ adb shell appops set $PKG GET_USAGE_STATS allow
 # Accessibility service. This replaces the list of enabled services.
 # If others are enabled, read the list first and append ours with a colon.
 adb shell settings get secure enabled_accessibility_services
-adb shell settings put secure enabled_accessibility_services $PKG/com.apptiary.streamtracktv.collector.KeyPressService
+adb shell settings put secure enabled_accessibility_services $PKG/com.jantursky.streamtracktv.collector.KeyPressService
 
 # Battery optimization exemption
 adb shell dumpsys deviceidle whitelist +$PKG
@@ -55,9 +55,15 @@ Package names, app display names and durations are the most specific data that l
 ## Screens
 
 - **Dashboard.** Today's summary, top apps and keypresses on the TV.
-- **Privacy.** The exact JSON of the next upload.
+- **Privacy.** The exact JSON of the next upload, and the security events waiting to go with it.
 - **Setup.** The permission checklist described above.
 - **Settings.** Sync interval (15 minutes to 24 hours), a daily screen time limit, per-app limits, excluded apps, light or dark theme, the server address, unpairing and deleting local data.
+
+## PIN lock and security log
+
+**Settings → PIN lock** asks for a 4 to 8 digit PIN, entered on a keypad that works with the D-pad. The app asks for it on every start and whenever it comes back from the background. Three wrong tries are free; after that the keypad waits 30 seconds, then longer, up to 15 minutes. **Forgot PIN** shows a code and a QR code; confirm it on the dashboard at `/pin-reset` with the account that owns the TV and the TV clears the PIN.
+
+The app records when it is opened and what happens at the lock (see [privacy and security](/privacy-and-security#security-events)), keeps the newest 500 events and sends new ones with each sync. They show up on the dashboard's Security page. The PIN itself is never recorded.
 
 ## Excluding an app
 

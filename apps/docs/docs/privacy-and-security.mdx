@@ -13,18 +13,24 @@ sidebar:
 | Remote key presses      | Key class and count per hour                        | `key_buckets`      |
 | Screen-on time          | Milliseconds per hour                               | `screen_buckets`   |
 | Time zone               | IANA name sent with each sync                       | `devices.timezone` |
+| Security events         | Event type, time on the TV and at most one number   | `security_events`  |
 | Device                  | Name you chose, optional model, last seen time      | `devices`          |
 | Account                 | Email and password hash, handled by Supabase Auth   | Supabase Auth      |
 
 ## Never collected
 
 - Raw key codes, typed text or passwords.
+- Your PIN, the digits you type on the lock screen or the PIN hash. Security events say that a wrong PIN was entered and how many tries it was, nothing more.
 - Screen content, window content or screenshots.
 - What is played inside an app.
 - Contacts, accounts, location or advertising IDs.
 - Anything from other devices on the network.
 
-The TV has a privacy screen that shows the exact payload before it is sent. The payload fields are listed in the [API reference](/api).
+The TV has a privacy screen that shows the exact payload before it is sent, usage rows and pending security events alike. The payload fields are listed in the [API reference](/api).
+
+## Security events
+
+The TV records when the app is opened and what happens at its PIN lock: lock screen shown, wrong PIN, wait started, unlocked, Forgot PIN opened, PIN reset confirmed, PIN turned on, changed and turned off. Each event is a type and a time, and for a wrong PIN or a wait one number (the wrong tries so far, or the wait in seconds). The TV keeps the newest 500 events and uploads the new ones with each sync. Only the owner's account can read them, on the Security page of the dashboard. They are deleted with the TV's data, follow your retention setting and are never part of a share link. If you clear the app's data on the TV, events it had not uploaded yet are lost.
 
 ## Tokens
 

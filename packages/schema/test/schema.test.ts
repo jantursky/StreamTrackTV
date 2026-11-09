@@ -6,10 +6,17 @@ import {
   PAIR_CODE_ALPHABET,
   apiErrorSchema,
   bucketKey,
+  eventsRequestSchema,
+  eventsResponseSchema,
+  SECURITY_EVENT_TYPES,
   pairPollRequestSchema,
   pairPollResponseSchema,
   pairStartRequestSchema,
   pairStartResponseSchema,
+  pinResetPollRequestSchema,
+  pinResetPollResponseSchema,
+  pinResetStartRequestSchema,
+  pinResetStartResponseSchema,
   syncPayloadSchema,
 } from '../src/index.js'
 
@@ -128,6 +135,34 @@ describe('pairing', () => {
   })
 })
 
+describe('PIN reset', () => {
+  const token = 'x'.repeat(LIMITS.minTokenLength)
+
+  it('start carries nothing', () => {
+    expect(pinResetStartRequestSchema.safeParse({}).success).toBe(true)
+    expect(pinResetStartRequestSchema.safeParse({ deviceId: 'other' }).success).toBe(false)
+  })
+
+  it('start answers with a code, a poll token and an expiry', () => {
+    const ok = { code: 'ABC234', pollToken: token, expiresAt: '2026-11-08T20:10:00Z' }
+    expect(pinResetStartResponseSchema.safeParse(ok).success).toBe(true)
+    expect(pinResetStartResponseSchema.safeParse({ ...ok, code: 'ABC' }).success).toBe(false)
+  })
+
+  it('poll needs a long enough token and only names three states', () => {
+    expect(pinResetPollRequestSchema.safeParse({ pollToken: token }).success).toBe(true)
+    expect(pinResetPollRequestSchema.safeParse({ pollToken: 'short' }).success).toBe(false)
+    for (const status of ['pending', 'expired', 'confirmed']) {
+      expect(pinResetPollResponseSchema.safeParse({ status }).success).toBe(true)
+    }
+    expect(pinResetPollResponseSchema.safeParse({ status: 'claimed' }).success).toBe(false)
+  })
+
+  it('keeps the PIN length limits the TV enforces', () => {
+    expect([LIMITS.pinMinLength, LIMITS.pinMaxLength]).toEqual([4, 8])
+  })
+})
+
 describe('apiErrorSchema', () => {
   it('only allows known error codes', () => {
     expect(apiErrorSchema.safeParse({ error: 'rate_limited', message: 'Slow down' }).success).toBe(true)
@@ -140,5 +175,47 @@ describe('bucketKey', () => {
     expect(bucketKey({ day: '2026-11-08', hour: 7, packageName: 'com.a.b' })).toBe('2026-11-08T07|app|com.a.b')
     expect(bucketKey({ day: '2026-11-08', hour: 7, keyClass: 'back' })).toBe('2026-11-08T07|key|back')
     expect(bucketKey({ day: '2026-11-08', hour: 7 })).toBe('2026-11-08T07|screen')
+  })
+})
+
+describe('security events', () => {
+  const event = {
+    eventId: '0b9a3a52-6f0c-4b8e-9a3e-5d2f1c7e8a10',
+    type: 'pin_wrong',
+    at: '2026-11-09T10:15:00Z',
+    value: 3,
+  }
+  const body = (events: unknown[]) => ({ schemaVersion: SCHEMA_VERSION, events })
+
+  it('accepts every known type, with and without a value', () => {
+    for (const type of SECURITY_EVENT_TYPES) {
+      expect(eventsRequestSchema.safeParse(body([{ ...event, type }])).success).toBe(true)
+    }
+    const { value: _value, ...bare } = event
+    expect(eventsRequestSchema.safeParse(body([bare])).success).toBe(true)
+  })
+
+  it('refuses unknown types, extra fields and bad ids', () => {
+    expect(eventsRequestSchema.safeParse(body([{ ...event, type: 'pin_typed' }])).success).toBe(false)
+    expect(eventsRequestSchema.safeParse(body([{ ...event, pin: '1234' }])).success).toBe(false)
+    expect(eventsRequestSchema.safeParse(body([{ ...event, eventId: 'not-a-uuid' }])).success).toBe(false)
+    expect(eventsRequestSchema.safeParse(body([{ ...event, value: -1 }])).success).toBe(false)
+    expect(eventsRequestSchema.safeParse(body([{ ...event, at: 'yesterday' }])).success).toBe(false)
+  })
+
+  it('needs one to the limit of events', () => {
+    expect(eventsRequestSchema.safeParse(body([])).success).toBe(false)
+    const many = (n: number) =>
+      Array.from({ length: n }, (_, i) => ({
+        ...event,
+        eventId: `0b9a3a52-6f0c-4b8e-9a3e-${String(i).padStart(12, '0')}`,
+      }))
+    expect(eventsRequestSchema.safeParse(body(many(LIMITS.maxEventsPerBatch))).success).toBe(true)
+    expect(eventsRequestSchema.safeParse(body(many(LIMITS.maxEventsPerBatch + 1))).success).toBe(false)
+  })
+
+  it('answers with a count', () => {
+    expect(eventsResponseSchema.safeParse({ accepted: 2 }).success).toBe(true)
+    expect(eventsResponseSchema.safeParse({ accepted: -1 }).success).toBe(false)
   })
 })

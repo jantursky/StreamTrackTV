@@ -13,6 +13,7 @@ export const SECTIONS = [
   { slug: 'remote', title: 'nav.remote' },
   { slug: 'heatmap', title: 'nav.heatmap' },
   { slug: 'devices', title: 'nav.devices' },
+  { slug: 'security', title: 'nav.security' },
   { slug: 'members', title: 'nav.members' },
   { slug: 'goals', title: 'nav.goals' },
   { slug: 'settings', title: 'nav.settings' },

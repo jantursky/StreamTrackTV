@@ -92,6 +92,24 @@ Limit: 60 syncs per device per hour, with `Retry-After` on `429`. A `401` means 
 
 A bucket is identified by its day and hour plus the package (usage), the key class (keys) or nothing (screen). This is what the exported `bucketKey()` helper returns, for example `2026-11-08T19|app|com.netflix.ninja`, `2026-11-08T19|key|dpad` and `2026-11-08T19|screen`. The server upserts on that key per device, so sending the same hour again overwrites it. Duplicates within one payload keep the last row. A retry after a timeout is safe.
 
+## POST /api/v1/events
+
+Sent by the TV after each sync with the device token, for the security log. The body is at most 32 KiB.
+
+| Field           | Type  | Rules                      |
+| --------------- | ----- | -------------------------- |
+| `schemaVersion` | `1`   | Must equal 1               |
+| `events`        | array | 1 to 100 events, see below |
+
+| Event field | Type    | Rules                                                                                                                                                                    |
+| ----------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `eventId`   | string  | UUID made on the TV. The server stores each `eventId` once per device, so a resent batch is harmless.                                                                    |
+| `type`      | string  | One of `app_opened`, `lock_shown`, `pin_wrong`, `pin_wait_started`, `unlocked`, `forgot_pin_opened`, `pin_reset_confirmed`, `pin_enabled`, `pin_changed`, `pin_disabled` |
+| `at`        | string  | ISO 8601 date-time with offset, on the TV's clock. More than one day ahead of the server clock is refused.                                                               |
+| `value`     | integer | Optional, 0 to 100000. The wrong tries so far for `pin_wrong`, the wait in seconds for `pin_wait_started`.                                                               |
+
+Unknown fields are refused, so nothing typed can be sent. The answer is `{ "accepted": n }` with the number of events that were new. A batch with one invalid event is refused as a whole with `400`.
+
 ## POST /api/v1/pair/start
 
 Sent by the TV without a token. It opens a pairing request. The body is at most 4 KiB, and the response is `201 Created`. Limit: 10 requests per client address per hour.
@@ -243,6 +261,7 @@ Every non-2xx response has this shape:
 | Endpoint                  | Limit                                                        |
 | ------------------------- | ------------------------------------------------------------ |
 | `POST /api/v1/sync`       | 60 per device per hour                                       |
+| `POST /api/v1/events`     | 60 per device per hour                                       |
 | `POST /api/v1/pair/start` | 10 per client address per hour                               |
 | `POST /api/v1/pair/poll`  | 240 per poll token and 960 per client address per 10 minutes |
 | Pairing confirmation      | 10 attempts per user per 10 minutes                          |

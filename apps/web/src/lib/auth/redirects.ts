@@ -1,6 +1,12 @@
 /** Paths that need a signed-in user; the proxy sends anonymous visitors to the sign-in page. */
 export function isProtectedPath(pathname: string): boolean {
-  return pathname === '/app' || pathname.startsWith('/app/') || pathname === '/pair' || pathname === '/reset-password'
+  return (
+    pathname === '/app' ||
+    pathname.startsWith('/app/') ||
+    pathname === '/pair' ||
+    pathname === '/pin-reset' ||
+    pathname === '/reset-password'
+  )
 }
 
 const ORIGIN = 'http://localhost'

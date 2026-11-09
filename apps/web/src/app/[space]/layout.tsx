@@ -11,7 +11,10 @@ export default async function SpaceLayout({ children, params }: LayoutProps<'/[s
   const { space } = await params
   const ws = await getWorkspace(space)
   const { t } = ws
-  const items = SECTIONS.map((s) => ({ href: s.slug ? `${ws.basePath}/${s.slug}` : ws.basePath, label: t(s.title) }))
+  const items = SECTIONS.filter((s) => s.slug !== 'security' || ws.source.kind !== 'shared').map((s) => ({
+    href: s.slug ? `${ws.basePath}/${s.slug}` : ws.basePath,
+    label: t(s.title),
+  }))
 
   return (
     <Shell

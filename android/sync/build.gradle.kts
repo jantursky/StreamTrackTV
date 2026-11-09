@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.apptiary.streamtracktv.sync"
+    namespace = "com.jantursky.streamtracktv.sync"
 }
 
 dependencies {

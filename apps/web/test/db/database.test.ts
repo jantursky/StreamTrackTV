@@ -191,6 +191,71 @@ describe.skipIf(url === undefined)('database', () => {
     expect(devices.rows[0]).toEqual({ n: 1 })
   })
 
+  it('confirms a PIN reset only for the owner, once, and hands it to the TV once', async () => {
+    const device = await addDevice(USER_A, hash(310))
+    const call = async <T>(sql: string, values: unknown[]) => (await db.query<{ v: T }>(sql, values)).rows[0]?.v
+    const start = (code: number, poll: number, ttl = '10 minutes') =>
+      call<boolean>(`select public.start_pin_reset($1, $2, $3, now() + interval '${ttl}') as v`, [
+        device,
+        hash(code),
+        hash(poll),
+      ])
+    const requestId = async (code: number) =>
+      (await db.query<{ id: string }>('select id from public.pin_reset_requests where code_hash = $1', [hash(code)]))
+        .rows[0]?.id
+    const confirm = (id: string | undefined, user: string) =>
+      call<boolean>('select public.confirm_pin_reset($1, $2) as v', [id, user])
+    const consume = (id: string | undefined) => call<boolean>('select public.consume_pin_reset($1) as v', [id])
+
+    expect(await start(320, 321)).toBe(true)
+    const first = await requestId(320)
+    expect(await confirm(first, USER_B)).toBe(false)
+    expect(await consume(first)).toBe(false)
+
+    // A newer request replaces the open one, so the old code is gone.
+    expect(await start(322, 323)).toBe(true)
+    expect(await requestId(320)).toBeUndefined()
+    const second = await requestId(322)
+    const other = await addDevice(USER_B, hash(311))
+    const clash = await call<boolean>("select public.start_pin_reset($1, $2, $3, now() + interval '10 minutes') as v", [
+      other,
+      hash(322),
+      hash(325),
+    ])
+    expect(clash).toBe(false)
+
+    expect(await confirm(second, USER_A)).toBe(true)
+    expect(await confirm(second, USER_A)).toBe(false)
+    expect(await consume(second)).toBe(true)
+    expect(await consume(second)).toBe(false)
+  })
+
+  it('refuses to confirm an expired PIN reset or one of a revoked device', async () => {
+    const device = await addDevice(USER_A, hash(330))
+    await db.query(
+      `insert into public.pin_reset_requests (device_id, code_hash, poll_token_hash, expires_at)
+       values ($1, $2, $3, now() - interval '1 minute'), ($1, $4, $5, now() + interval '10 minutes')`,
+      [device, hash(331), hash(332), hash(333), hash(334)],
+    )
+    const id = async (code: number) =>
+      (await db.query<{ id: string }>('select id from public.pin_reset_requests where code_hash = $1', [hash(code)]))
+        .rows[0]?.id
+    const confirm = async (requestId: string | undefined) =>
+      (await db.query<{ v: boolean }>('select public.confirm_pin_reset($1, $2) as v', [requestId, USER_A])).rows[0]?.v
+    expect(await confirm(await id(331))).toBe(false)
+    await db.query('update public.devices set revoked_at = now() where id = $1', [device])
+    expect(await confirm(await id(333))).toBe(false)
+  })
+
+  it('keeps PIN reset requests away from signed-in users', async () => {
+    await asUser(USER_A, async (client) => {
+      expect(await failure(client, 'select * from public.pin_reset_requests')).toMatch(/permission denied/)
+      expect(await failure(client, 'select public.confirm_pin_reset(gen_random_uuid(), $1)', [USER_A])).toMatch(
+        /permission denied/,
+      )
+    })
+  })
+
   it('counts rate limits per key and starts over in a new window', async () => {
     const hit = async (key: string) =>
       (await db.query<{ ok: boolean }>('select public.hit_rate_limit($1, 2, 600) as ok', [key])).rows[0]?.ok
@@ -273,5 +338,74 @@ describe.skipIf(url === undefined)('database', () => {
       synced,
     ])
     expect(buckets.rows[0]).toEqual({ n: 1 })
+  })
+
+  describe('security events', () => {
+    const EVENT_A = '0b9a3a52-6f0c-4b8e-9a3e-5d2f1c7e8a10'
+    const EVENT_B = '6c1f0a77-2c3d-4e5f-8a9b-0c1d2e3f4a5b'
+    const batch = (...events: { id: string; type: string; value?: number }[]) =>
+      JSON.stringify(events.map((e) => ({ eventId: e.id, type: e.type, at: '2026-11-09T10:15:00Z', value: e.value })))
+    const store = async (deviceId: string, events: string) =>
+      (await db.query<{ n: number }>('select public.ingest_events($1, $2::jsonb) as n', [deviceId, events])).rows[0]?.n
+
+    it('stores a batch once, however often it is sent', async () => {
+      const device = await addDevice(USER_A, hash(40))
+      const events = batch({ id: EVENT_A, type: 'pin_wrong', value: 3 }, { id: EVENT_B, type: 'app_opened' })
+      expect(await store(device, events)).toBe(2)
+      expect(await store(device, events)).toBe(0)
+      const { rows } = await db.query('select count(*)::int as n from public.security_events where device_id = $1', [
+        device,
+      ])
+      expect(rows[0]).toEqual({ n: 2 })
+    })
+
+    it('refuses an unknown type and a revoked device', async () => {
+      const device = await addDevice(USER_A, hash(41))
+      await expect(store(device, batch({ id: EVENT_A, type: 'pin_typed' }))).rejects.toThrow(/check constraint/)
+      const revoked = await addDevice(USER_A, hash(42))
+      await db.query('update public.devices set revoked_at = now() where id = $1', [revoked])
+      await expect(store(revoked, batch({ id: EVENT_A, type: 'app_opened' }))).rejects.toThrow(/unknown or revoked/)
+    })
+
+    it('shows events to their owner only, and lets the owner delete them', async () => {
+      const device = await addDevice(USER_A, hash(43))
+      await store(device, batch({ id: EVENT_A, type: 'forgot_pin_opened' }))
+      await asUser(USER_A, async (client) => {
+        const { rows } = await client.query('select type from public.security_events where device_id = $1', [device])
+        expect(rows).toEqual([{ type: 'forgot_pin_opened' }])
+      })
+      await asUser(USER_B, async (client) => {
+        const { rows } = await client.query('select 1 from public.security_events where device_id = $1', [device])
+        expect(rows).toHaveLength(0)
+        const deleted = await client.query('delete from public.security_events where device_id = $1', [device])
+        expect(deleted.rowCount).toBe(0)
+      })
+      await asUser(USER_A, async (client) => {
+        expect(await failure(client, 'select public.ingest_events($1, $2::jsonb)', [device, '[]'])).toMatch(
+          /permission denied/,
+        )
+        expect(await failure(client, "update public.security_events set type = 'app_opened'")).toMatch(
+          /permission denied/,
+        )
+        const deleted = await client.query('delete from public.security_events where device_id = $1', [device])
+        expect(deleted.rowCount).toBe(1)
+      })
+    })
+
+    it('follows the retention of the user and goes with the device', async () => {
+      const device = await addDevice(USER_A, hash(44))
+      await store(device, batch({ id: EVENT_A, type: 'app_opened' }))
+      await db.query(
+        "update public.security_events set occurred_at = now() - interval '4000 days' where device_id = $1",
+        [device],
+      )
+      await db.query('select public.apply_retention()')
+      const left = await db.query('select 1 from public.security_events where device_id = $1', [device])
+      expect(left.rows).toHaveLength(0)
+      await store(device, batch({ id: EVENT_B, type: 'app_opened' }))
+      await db.query('delete from public.devices where id = $1', [device])
+      const gone = await db.query('select 1 from public.security_events where device_id = $1', [device])
+      expect(gone.rows).toHaveLength(0)
+    })
   })
 })

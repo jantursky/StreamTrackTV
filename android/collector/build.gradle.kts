@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.apptiary.streamtracktv.collector"
+    namespace = "com.jantursky.streamtracktv.collector"
 }
 
 dependencies {

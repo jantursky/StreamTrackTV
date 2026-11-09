@@ -1,6 +1,12 @@
 import { createAdminClient } from '../supabase/server'
 import { isDemoOnly } from '../env'
-import { supabaseIngestStore, supabasePairingStore, supabaseRateLimiter } from '../supabase/stores'
+import {
+  supabaseEventsStore,
+  supabaseIngestStore,
+  supabasePairingStore,
+  supabasePinResetStore,
+  supabaseRateLimiter,
+} from '../supabase/stores'
 import { apiError } from './api'
 
 /** Service-role ports for the device API; `null` on a demo-only deployment. */
@@ -8,8 +14,10 @@ export function deviceApi() {
   const admin = isDemoOnly() ? null : createAdminClient()
   if (admin === null) return null
   return {
+    events: supabaseEventsStore(admin),
     ingest: supabaseIngestStore(admin),
     pairing: supabasePairingStore(admin),
+    pinReset: supabasePinResetStore(admin),
     limiter: supabaseRateLimiter(admin),
     now: () => new Date(),
   }
