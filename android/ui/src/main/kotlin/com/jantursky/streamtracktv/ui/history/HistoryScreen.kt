@@ -3,6 +3,8 @@ package com.jantursky.streamtracktv.ui.history
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -144,11 +146,13 @@ fun HistoryScreen(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun Controls(state: HistoryState, today: LocalDate, actions: HistoryActions) {
     val quick = state.quick(today)
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        // A flow row: six pills do not fit on one line of a TV, and a squeezed pill wraps its text letter by letter.
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             QuickPeriod.entries.forEach { period ->
                 PillButton(
                     stringResource(period.label()),
@@ -158,7 +162,7 @@ private fun Controls(state: HistoryState, today: LocalDate, actions: HistoryActi
                 )
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             HistoryRange.entries.forEach { range ->
                 PillButton(
                     stringResource(range.label()),
@@ -168,7 +172,7 @@ private fun Controls(state: HistoryState, today: LocalDate, actions: HistoryActi
                 )
             }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             PillButton(
                 stringResource(previousLabel(state.unit)),
                 onClick = { actions.step(-1) },

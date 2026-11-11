@@ -23,7 +23,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.platform.LocalContext
@@ -188,6 +190,8 @@ fun NavigationLayout(current: Destination, onNavigate: (Destination) -> Unit, co
         Box(
             Modifier
                 .weight(1f)
+                // Left from the first control of any screen, however far down it is scrolled, goes back to the rail.
+                .focusProperties { exit = { if (it == FocusDirection.Left) currentTab else FocusRequester.Default } }
                 .focusGroup(),
         ) { content() }
     }

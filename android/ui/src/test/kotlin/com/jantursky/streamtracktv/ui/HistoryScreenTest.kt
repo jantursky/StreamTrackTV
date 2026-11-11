@@ -16,6 +16,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.test.pressKey
+import androidx.compose.ui.test.requestFocus
 import com.jantursky.streamtracktv.core.insights.HistoryRange
 import com.jantursky.streamtracktv.core.insights.QuickPeriod
 import com.jantursky.streamtracktv.core.insights.buildHistory
@@ -48,6 +49,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.time.DayOfWeek
 import java.time.LocalDate
 import kotlin.test.assertEquals
@@ -233,6 +235,51 @@ class HistoryScreenTest {
         compose.onRoot().performKeyInput { pressKey(Key.DirectionCenter) }
         compose.waitForIdle()
         assertEquals(listOf("day$yesterday"), calls)
+    }
+
+    private fun showInShell(state: HistoryState, data: BucketSet) {
+        val period = state.period(today, DayOfWeek.MONDAY)
+        val history = buildHistory(period, data)
+        val model = HistoryScreenModel(history, labels)
+        compose.setContent {
+            StreamTrackTheme {
+                NavigationLayout(Destination.HISTORY, onNavigate = {}) { HistoryScreen(state, model, null, today, actions) }
+            }
+        }
+    }
+
+    @Test
+    @Config(qualifiers = "w700dp-h540dp-xhdpi")
+    fun `on a TV all six quick periods show in full and none wraps its text`() {
+        showInShell(HistoryState(today), twoDays)
+        val heights =
+            QuickPeriod.entries.map {
+                compose
+                    .onNodeWithTag(historyQuickTag(it))
+                    .fetchSemanticsNode()
+                    .size.height
+            }
+        assertEquals(1, heights.toSet().size, "pills differ in height, so one wrapped: $heights")
+        QuickPeriod.entries.forEach { compose.onNodeWithTag(historyQuickTag(it)).assertIsDisplayed() }
+    }
+
+    @Test
+    @Config(qualifiers = "w960dp-h540dp-xhdpi")
+    fun `Left from the first control and from a row far down both return to the rail`() {
+        showInShell(HistoryState(today, HistoryRange.WEEK), twoDays)
+        compose.onNodeWithTag(historyRangeTag(HistoryRange.WEEK)).requestFocus()
+        compose.onRoot().performKeyInput { pressKey(Key.DirectionLeft) }
+        compose.waitForIdle()
+        compose.onNodeWithTag(historyRangeTag(HistoryRange.DAY)).assertIsFocused()
+        compose.onRoot().performKeyInput { pressKey(Key.DirectionLeft) }
+        compose.waitForIdle()
+        compose.onNodeWithTag(navTag(Destination.HISTORY)).assertIsFocused()
+        val far = historyDayTag(today.minusDays(5))
+        scrollTo(hasTestTag(far))
+        compose.onNodeWithTag(far).requestFocus()
+        compose.onRoot().performKeyInput { pressKey(Key.DirectionLeft) }
+        compose.waitForIdle()
+        compose.onNodeWithTag(navTag(Destination.HISTORY)).assertIsFocused()
     }
 
     @Test
