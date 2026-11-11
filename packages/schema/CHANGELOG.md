@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-11-11
+
+### Changed
+
+- No change to the schemas. The version moves with the app release 1.2.1, which fixes the History controls on the TV.
+
 ## [1.2.0] - 2026-11-11
 
 ### Changed

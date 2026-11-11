@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-11-11
+
+### Fixed
+
+- History: the six quick period buttons no longer run off the right edge of a TV screen and no longer wrap their text; they flow onto a second line.
+- Pressing Left from the first control of a screen, however far down it is scrolled, returns to the navigation rail.
+
 ## [1.2.0] - 2026-11-11
 
 ### Added
