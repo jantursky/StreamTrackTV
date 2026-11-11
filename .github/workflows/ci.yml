@@ -77,7 +77,10 @@ jobs:
       - name: Build the schema package
         run: bun run build:schema
       - name: Install Playwright browsers
-        run: bunx playwright install --with-deps
+        # The runner image's package index can lag the mirror and 404; refresh it first.
+        run: |
+          sudo apt-get update
+          bunx playwright install --with-deps
       - name: End-to-end tests
         run: bun run test:e2e
       - name: Upload the Playwright report
