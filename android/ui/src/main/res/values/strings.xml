@@ -75,6 +75,25 @@
   <string name="history_keys">Remote presses by key</string>
   <string name="history_no_keys">No remote presses in this range.</string>
   <string name="history_empty">Nothing was recorded in this range. Step to another day.</string>
+  <string name="history_yesterday">Yesterday</string>
+  <string name="history_this_week">This week</string>
+  <string name="history_last_week">Last week</string>
+  <string name="history_this_month">This month</string>
+  <string name="history_last_month">Last month</string>
+  <string name="history_previous_week">Previous week</string>
+  <string name="history_next_week">Next week</string>
+  <string name="history_previous_month">Previous month</string>
+  <string name="history_next_month">Next month</string>
+  <string name="history_compare_title">Compared with the period before</string>
+  <string name="history_compare_value">%1$s: %2$s</string>
+  <string name="history_highlights">Highlights</string>
+  <string name="history_daily_average">Daily average</string>
+  <string name="history_busiest_day">Busiest day</string>
+  <string name="history_peak_hour">Peak hour</string>
+  <string name="history_busiest_day_value">%1$s, %2$s</string>
+  <string name="history_days">Days</string>
+  <string name="history_days_hint">Select a day to open it.</string>
+  <string name="history_day_row">%1$s: screen %2$s, apps %3$s</string>
   <!-- PIN lock -->
   <string name="pin_lock_title">Enter your PIN</string>
   <string name="pin_lock_hint">StreamTrack TV is locked.</string>

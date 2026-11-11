@@ -31,9 +31,14 @@ import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.jantursky.streamtracktv.collector.PackageManagerAppCatalog
 import com.jantursky.streamtracktv.core.insights.AppShare
+import com.jantursky.streamtracktv.core.insights.Comparison
+import com.jantursky.streamtracktv.core.insights.Delta
+import com.jantursky.streamtracktv.core.insights.Highlights
 import com.jantursky.streamtracktv.core.insights.HistoryModel
 import com.jantursky.streamtracktv.core.insights.HistoryPoint
 import com.jantursky.streamtracktv.core.insights.HistoryRange
+import com.jantursky.streamtracktv.core.insights.PeriodUnit
+import com.jantursky.streamtracktv.core.insights.QuickPeriod
 import com.jantursky.streamtracktv.ui.R
 import com.jantursky.streamtracktv.ui.UiGraph
 import com.jantursky.streamtracktv.ui.components.AppIcon
@@ -49,6 +54,7 @@ import com.jantursky.streamtracktv.ui.theme.LocalPalette
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import kotlin.math.abs
 
 const val HISTORY_PREVIOUS_TAG = "history-previous"
 const val HISTORY_NEXT_TAG = "history-next"
@@ -59,12 +65,21 @@ fun historyRangeTag(range: HistoryRange) = "history-range-${range.name.lowercase
 
 fun historyAppTag(packageName: String) = "history-app-$packageName"
 
+fun historyQuickTag(quick: QuickPeriod) = "history-quick-${quick.name.lowercase()}"
+
+fun historyDayTag(day: LocalDate) = "history-day-$day"
+
+const val HISTORY_COMPARE_TAG = "history-compare"
+const val HISTORY_HIGHLIGHTS_TAG = "history-highlights"
+
 /** Actions of the History screen; each maps to one control. */
 data class HistoryActions(
     val step: (Int) -> Unit,
     val goToday: () -> Unit,
     val setRange: (HistoryRange) -> Unit,
     val setApp: (String?) -> Unit,
+    val setQuick: (QuickPeriod) -> Unit = {},
+    val openDay: (LocalDate) -> Unit = {},
 )
 
 @Composable
@@ -72,7 +87,15 @@ fun HistoryRoute(graph: UiGraph) {
     val viewModel = viewModel { HistoryViewModel(graph) }
     val state by viewModel.state.collectAsStateWithLifecycle()
     val model by viewModel.model.collectAsStateWithLifecycle()
-    val actions = HistoryActions(viewModel::step, viewModel::goToday, viewModel::setRange, viewModel::setApp)
+    val actions =
+        HistoryActions(
+            viewModel::step,
+            viewModel::goToday,
+            viewModel::setRange,
+            viewModel::setApp,
+            viewModel::setQuick,
+            viewModel::openDay,
+        )
     model?.let { HistoryScreen(state, it, graph.catalog, LocalDate.now(), actions) }
 }
 
@@ -105,7 +128,13 @@ fun HistoryScreen(
             item { Caption(stringResource(R.string.history_empty)) }
         } else {
             item { Totals(history) }
+            model.comparison?.let { comparison -> item { Comparison(comparison) } }
+            model.highlights?.let { highlights -> item { HighlightsCard(highlights) } }
             item { Timeline(history) }
+            if (history.points.first().hour == null) {
+                item { DaysHeader() }
+                items(history.points.reversed(), key = { "day-${it.day}" }) { point -> DayRow(point, actions) }
+            }
             item { AppFilterHeader(history, model, actions) }
             items(history.apps, key = { it.packageName }) { app ->
                 AppRow(app, model, history.appFilter == app.packageName, catalog, actions)
@@ -117,26 +146,37 @@ fun HistoryScreen(
 
 @Composable
 private fun Controls(state: HistoryState, today: LocalDate, actions: HistoryActions) {
+    val quick = state.quick(today)
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            QuickPeriod.entries.forEach { period ->
+                PillButton(
+                    stringResource(period.label()),
+                    onClick = { actions.setQuick(period) },
+                    modifier = Modifier.testTag(historyQuickTag(period)),
+                    primary = quick == period,
+                )
+            }
+        }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             HistoryRange.entries.forEach { range ->
                 PillButton(
                     stringResource(range.label()),
                     onClick = { actions.setRange(range) },
                     modifier = Modifier.testTag(historyRangeTag(range)),
-                    primary = state.range == range,
+                    primary = state.unit == null && state.range == range,
                 )
             }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             PillButton(
-                stringResource(R.string.history_previous),
+                stringResource(previousLabel(state.unit)),
                 onClick = { actions.step(-1) },
                 modifier = Modifier.testTag(HISTORY_PREVIOUS_TAG),
             )
             if (!state.atToday(today)) {
                 PillButton(
-                    stringResource(R.string.history_next),
+                    stringResource(nextLabel(state.unit)),
                     onClick = { actions.step(1) },
                     modifier = Modifier.testTag(HISTORY_NEXT_TAG),
                 )
@@ -149,6 +189,30 @@ private fun Controls(state: HistoryState, today: LocalDate, actions: HistoryActi
         }
     }
 }
+
+private fun QuickPeriod.label(): Int =
+    when (this) {
+        QuickPeriod.TODAY -> R.string.history_today
+        QuickPeriod.YESTERDAY -> R.string.history_yesterday
+        QuickPeriod.THIS_WEEK -> R.string.history_this_week
+        QuickPeriod.LAST_WEEK -> R.string.history_last_week
+        QuickPeriod.THIS_MONTH -> R.string.history_this_month
+        QuickPeriod.LAST_MONTH -> R.string.history_last_month
+    }
+
+private fun previousLabel(unit: PeriodUnit?): Int =
+    when (unit) {
+        PeriodUnit.WEEK -> R.string.history_previous_week
+        PeriodUnit.MONTH -> R.string.history_previous_month
+        else -> R.string.history_previous
+    }
+
+private fun nextLabel(unit: PeriodUnit?): Int =
+    when (unit) {
+        PeriodUnit.WEEK -> R.string.history_next_week
+        PeriodUnit.MONTH -> R.string.history_next_month
+        else -> R.string.history_next
+    }
 
 @Composable
 private fun rangeLabel(history: HistoryModel): String {
@@ -186,6 +250,100 @@ private fun Totals(history: HistoryModel) {
                     softWrap = false,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun Comparison(comparison: Comparison) {
+    val palette = LocalPalette.current
+    FocusSurface(onClick = null, modifier = Modifier.fillMaxWidth().testTag(HISTORY_COMPARE_TAG)) {
+        SectionTitle(stringResource(R.string.history_compare_title))
+        listOf(
+            R.string.today_screen_time to formatDelta(comparison.screenOn, ::formatDuration),
+            R.string.history_foreground to formatDelta(comparison.foreground, ::formatDuration),
+            R.string.today_key_presses to formatDelta(comparison.keyPresses, ::formatCount),
+        ).forEach { (title, value) ->
+            Text(
+                stringResource(R.string.history_compare_value, stringResource(title), value),
+                style = MaterialTheme.typography.bodyLarge,
+                color = palette.text,
+            )
+        }
+    }
+}
+
+/** `+1 h (+50 %)`, `−10 (−50 %)`, `0` and no percentage when there is nothing to divide by. */
+private fun formatDelta(delta: Delta, format: (Long) -> String): String {
+    val sign =
+        if (delta.diff > 0) {
+            "+"
+        } else if (delta.diff < 0) {
+            "\u2212"
+        } else {
+            ""
+        }
+    val value = "$sign${format(abs(delta.diff))}"
+    val percent = delta.percent ?: return value
+    val percentSign =
+        if (percent > 0) {
+            "+"
+        } else if (percent < 0) {
+            "\u2212"
+        } else {
+            ""
+        }
+    return "$value ($percentSign${abs(percent)} %)"
+}
+
+@Composable
+private fun HighlightsCard(highlights: Highlights) {
+    val palette = LocalPalette.current
+    val dateFormat = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)
+    FocusSurface(onClick = null, modifier = Modifier.fillMaxWidth().testTag(HISTORY_HIGHLIGHTS_TAG)) {
+        SectionTitle(stringResource(R.string.history_highlights))
+        val rows =
+            listOfNotNull(
+                highlights.dailyAverageMs?.let { stringResource(R.string.history_daily_average) to formatDuration(it) },
+                highlights.busiestDay?.let {
+                    stringResource(R.string.history_busiest_day) to
+                        stringResource(R.string.history_busiest_day_value, it.format(dateFormat), formatDuration(highlights.busiestDayMs))
+                },
+                stringResource(R.string.history_peak_hour) to "%02d:00".format(highlights.peakHour),
+            )
+        rows.forEach { (title, value) ->
+            Row(Modifier.fillMaxWidth().padding(vertical = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(title, style = MaterialTheme.typography.bodyLarge, color = palette.text)
+                Text(value, style = MaterialTheme.typography.bodyLarge, color = palette.ink)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DaysHeader() {
+    Column {
+        SectionTitle(stringResource(R.string.history_days))
+        Caption(stringResource(R.string.history_days_hint))
+    }
+}
+
+@Composable
+private fun DayRow(point: HistoryPoint, actions: HistoryActions) {
+    val palette = LocalPalette.current
+    val date = point.day.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM))
+    val description =
+        stringResource(R.string.history_day_row, date, formatDuration(point.screenOnMs), formatDuration(point.foregroundMs))
+    FocusSurface(
+        onClick = { actions.openDay(point.day) },
+        modifier = Modifier.fillMaxWidth().testTag(historyDayTag(point.day)).semantics { contentDescription = description },
+        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
+    ) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(date, style = MaterialTheme.typography.titleMedium, color = palette.ink, modifier = Modifier.weight(1f))
+            Text(formatDuration(point.screenOnMs), style = MaterialTheme.typography.bodyLarge, color = palette.ink)
+            Spacer(Modifier.width(24.dp))
+            Caption(formatDuration(point.foregroundMs))
         }
     }
 }

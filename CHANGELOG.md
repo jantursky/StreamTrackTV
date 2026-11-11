@@ -4,6 +4,14 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-11
+
+### Added
+
+- History: quick periods Today, Yesterday, This week, Last week, This month and Last month next to Day, 7 days and 30 days. Previous and Next move by a whole week or month for a quick period.
+- History: a comparison with the period before, a Highlights card (daily average, busiest day, peak hour) and a list of days under the chart; selecting a day opens it.
+- Nothing is sent to the server for these. The wire format and the API are unchanged.
+
 ## [1.1.1] - 2026-11-09
 
 ### Changed

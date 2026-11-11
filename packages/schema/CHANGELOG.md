@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-11
+
+### Changed
+
+- No change to the schemas. The version moves with the app release, which adds History quick periods and insights on the TV.
+
 ## [1.1.1] - 2026-11-09
 
 ### Changed
