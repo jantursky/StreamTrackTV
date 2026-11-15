@@ -381,7 +381,7 @@ private fun Timeline(history: HistoryModel) {
                     CornerRadius(4f),
                 )
                 drawRoundRect(
-                    palette.accent,
+                    palette.focusRing,
                     Offset(x, size.height - foregroundHeight),
                     Size(bar, foregroundHeight),
                     CornerRadius(4f),
@@ -445,6 +445,7 @@ private fun AppRow(
         modifier = Modifier.fillMaxWidth().testTag(historyAppTag(app.packageName)),
         color = if (selected) palette.accentWash else palette.surface,
         contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp),
+        description = stringResource(R.string.a11y_app_time, model.label(app.packageName), formatDuration(app.foregroundMs)),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (catalog != null) {
@@ -454,7 +455,7 @@ private fun AppRow(
             Column(Modifier.weight(1f)) {
                 Text(model.label(app.packageName), style = MaterialTheme.typography.titleMedium, color = palette.ink)
                 Spacer(Modifier.height(6.dp))
-                ShareBar(app.share.toFloat())
+                ShareBar(app.share.toFloat(), label = null)
             }
             Spacer(Modifier.width(24.dp))
             Column(horizontalAlignment = Alignment.End) {

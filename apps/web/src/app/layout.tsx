@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { cookies } from 'next/headers'
 import type { ReactNode } from 'react'
 import { siteUrl } from '@/lib/env'
-import { createTranslator } from '@/lib/i18n/translate'
+import { createTranslator, DEFAULT_LOCALE, htmlLang } from '@/lib/i18n/translate'
 import { parseTheme } from '@/lib/theme'
 import './globals.css'
 
@@ -30,7 +30,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   // Reading the cookie also renders every page per request, which the nonce-based CSP requires.
   const theme = parseTheme((await cookies()).get('theme')?.value)
   return (
-    <html lang="en" data-theme={theme === 'system' ? undefined : theme}>
+    <html lang={htmlLang(DEFAULT_LOCALE)} data-theme={theme === 'system' ? undefined : theme}>
       <body>
         <a
           href="#main"

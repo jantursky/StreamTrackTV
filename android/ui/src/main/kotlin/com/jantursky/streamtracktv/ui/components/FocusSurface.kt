@@ -19,6 +19,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.jantursky.streamtracktv.ui.theme.CardShape
@@ -28,9 +30,11 @@ import com.jantursky.streamtracktv.ui.theme.LocalPalette
 const val FOCUS_SCALE = 1.04f
 
 /**
- * The one focus treatment of the app: a 3 dp accent ring plus a 1.04 scale. With [onClick] the
+ * The one focus treatment of the app: a 3 dp focus-ring plus a 1.04 scale. With [onClick] the
  * surface is clickable (D-Pad center or Enter); without it, it is still focusable so the D-Pad can
- * reach and scroll to read-only content.
+ * reach and scroll to read-only content. A non-null [description] merges the children into one
+ * TalkBack item that reads it; null leaves the children's own semantics, which is right when the
+ * surface holds a button.
  */
 @Composable
 fun FocusSurface(
@@ -40,6 +44,7 @@ fun FocusSurface(
     color: Color = LocalPalette.current.surface,
     borderColor: Color = LocalPalette.current.border,
     contentPadding: PaddingValues = PaddingValues(24.dp),
+    description: String? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val palette = LocalPalette.current
@@ -52,7 +57,7 @@ fun FocusSurface(
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
-            }.border(if (focused) 3.dp else 1.dp, if (focused) palette.accent else borderColor, shape)
+            }.border(if (focused) 3.dp else 1.dp, if (focused) palette.focusRing else borderColor, shape)
             .clip(shape)
             .background(color)
     val interactive =
@@ -61,5 +66,11 @@ fun FocusSurface(
         } else {
             styled.focusable(interactionSource = interaction)
         }
-    Column(interactive.padding(contentPadding), content = content)
+    val described =
+        if (description != null) {
+            interactive.semantics(mergeDescendants = true) { contentDescription = description }
+        } else {
+            interactive
+        }
+    Column(described.padding(contentPadding), content = content)
 }

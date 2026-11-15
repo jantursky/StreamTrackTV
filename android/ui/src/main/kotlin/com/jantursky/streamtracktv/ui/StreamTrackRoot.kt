@@ -6,6 +6,7 @@ import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -157,7 +159,8 @@ fun NavigationLayout(current: Destination, onNavigate: (Destination) -> Unit, co
     ) {
         Column(
             Modifier
-                .width(220.dp)
+                .widthIn(min = 220.dp, max = 320.dp)
+                .width(IntrinsicSize.Max)
                 .focusRestorer(currentTab)
                 .focusGroup(),
             verticalArrangement = Arrangement.spacedBy(12.dp),

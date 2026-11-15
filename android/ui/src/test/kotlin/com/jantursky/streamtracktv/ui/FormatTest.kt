@@ -38,4 +38,15 @@ class FormatTest {
         assertEquals("1 Oct", formatMoment(at("2026-10-01T10:00"), today, ZoneOffset.UTC, Locale.UK))
         assertEquals("1,234", formatCount(1234, Locale.UK))
     }
+
+    @Test
+    fun `day and hour follow the locale and its clock`() {
+        val tuesday = LocalDate.parse("2026-11-10")
+
+        // Newer JDKs put a narrow no-break space before AM and PM.
+        fun plain(text: String) = text.replace('\u202f', ' ')
+        assertEquals("Tue 9:00 PM", plain(formatDayHour(tuesday, 21, Locale.US)))
+        assertEquals("Tue 12:00 AM", plain(formatDayHour(tuesday, 0, Locale.US)))
+        assertEquals("Di. 21:00", formatDayHour(tuesday, 21, Locale.GERMANY))
+    }
 }

@@ -102,6 +102,10 @@ A goal is a daily or weekly limit on screen-on time, app time or keypresses. Its
 - Share links.
 - Account deletion.
 
+## Accessibility
+
+The dashboard works with a keyboard alone: **Tab** moves between controls, **Enter** and **Space** activate them, and the first **Tab** on any page shows a skip link to the main content. The focus indicator is always visible. When your system asks for reduced motion, the dashboard turns off transitions and animations. The page language follows the language the page is shown in; a saved language without a translation falls back to English. Faint text and charts meet WCAG AA contrast in the light and the dark theme, and every demo page is checked with axe before a release.
+
 ## Share links
 
 A share link opens a read-only page at `/s/<token>`, for all devices or for one. Links last 1, 7 or 30 days, your choice, and can be revoked in Settings. A link scoped to one device shows only the apps used on that device. The page shows no goals, household members or settings, and search engines are told not to index it. Anyone with the link can see the numbers, so treat it like a password.

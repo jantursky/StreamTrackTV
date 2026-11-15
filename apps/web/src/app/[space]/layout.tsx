@@ -4,6 +4,7 @@ import { NavTabs } from '@/components/client/NavTabs'
 import { DemoBadge, Shell } from '@/components/dashboard/Shell'
 import { adoptTimeZone } from '@/lib/account/actions'
 import { signOut } from '@/lib/auth/actions'
+import { htmlLang } from '@/lib/i18n/translate'
 import { getWorkspace } from '@/lib/workspace'
 import { SECTIONS } from '@/views/section'
 
@@ -17,26 +18,28 @@ export default async function SpaceLayout({ children, params }: LayoutProps<'/[s
   }))
 
   return (
-    <Shell
-      t={t}
-      badge={ws.source.kind === 'demo' ? <DemoBadge t={t} /> : undefined}
-      actions={
-        ws.editable ? (
-          <form action={signOut}>
-            <button type="submit" className="btn-ghost">
-              {t('nav.signOut')}
-            </button>
-          </form>
-        ) : (
-          <Link href="/signup" className="btn-ghost hidden sm:inline-flex">
-            {t('nav.signUp')}
-          </Link>
-        )
-      }
-      nav={<NavTabs label={t('nav.main')} items={items} />}
-    >
-      {ws.editable && ws.settings.timezoneSource !== 'account' && <TimeZoneSync adopt={adoptTimeZone} />}
-      {children}
-    </Shell>
+    <div lang={htmlLang(ws.locale)}>
+      <Shell
+        t={t}
+        badge={ws.source.kind === 'demo' ? <DemoBadge t={t} /> : undefined}
+        actions={
+          ws.editable ? (
+            <form action={signOut}>
+              <button type="submit" className="btn-ghost">
+                {t('nav.signOut')}
+              </button>
+            </form>
+          ) : (
+            <Link href="/signup" className="btn-ghost hidden sm:inline-flex">
+              {t('nav.signUp')}
+            </Link>
+          )
+        }
+        nav={<NavTabs label={t('nav.main')} items={items} />}
+      >
+        {ws.editable && ws.settings.timezoneSource !== 'account' && <TimeZoneSync adopt={adoptTimeZone} />}
+        {children}
+      </Shell>
+    </div>
   )
 }

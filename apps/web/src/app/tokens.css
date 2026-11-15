@@ -14,7 +14,8 @@
   --ink: light-dark(#0c0a09, #fafaf9);
   --soot: light-dark(#1c1917, #e7e5e4);
   --text: light-dark(#78716c, #a8a29e);
-  --text-faint: light-dark(#a8a29e, #78716c);
+  /* Small text: 4.5:1 on --surface and --canvas in both schemes. Hierarchy comes from size, not colour. */
+  --text-faint: light-dark(#78716c, #8a847f);
   --border-strong: light-dark(#d6d3d1, #44403c);
   --border: light-dark(#e8e6e5, #292524);
   --canvas: light-dark(#fafaf9, #0c0a09);

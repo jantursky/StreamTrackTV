@@ -6,9 +6,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -143,11 +143,23 @@ private fun PinKey(label: String, enabled: Boolean, onClick: () -> Unit, modifie
     val palette = LocalPalette.current
     FocusSurface(
         onClick = if (enabled) onClick else null,
-        modifier = modifier.width(88.dp).height(64.dp).then(if (tag != null) Modifier.testTag(pinKeyTag(tag)) else Modifier),
+        modifier =
+            modifier.defaultMinSize(minWidth = 88.dp, minHeight = 64.dp).then(
+                if (tag !=
+                    null
+                ) {
+                    Modifier.testTag(pinKeyTag(tag))
+                } else {
+                    Modifier
+                },
+            ),
         shape = PillShape,
         contentPadding = PaddingValues(0.dp),
     ) {
-        Box(Modifier.width(88.dp).height(64.dp), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier.defaultMinSize(minWidth = 88.dp, minHeight = 64.dp).padding(horizontal = 8.dp, vertical = 4.dp),
+            contentAlignment = Alignment.Center,
+        ) {
             Text(
                 label,
                 style = MaterialTheme.typography.headlineSmall,

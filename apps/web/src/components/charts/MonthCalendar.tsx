@@ -47,11 +47,12 @@ export function MonthCalendar({
               const number = Number(day.slice(8))
               const tone = level >= 4 ? 'text-on-accent' : 'text-ink'
               const ring = selected.has(day) ? 'outline-2 outline-offset-1 outline-ink' : ''
-              const cell = `flex aspect-square min-h-9 flex-col justify-between rounded-icon p-1 text-small sm:p-1.5 ${HEAT_CLASSES[level] ?? HEAT_CLASSES[0]} ${tone} ${ring}`
+              const base = 'flex aspect-square min-h-9 flex-col justify-between rounded-icon p-1 text-small sm:p-1.5'
+              const cell = `${base} ${HEAT_CLASSES[level] ?? HEAT_CLASSES[0]} ${tone} ${ring}`
               return (
                 <td key={day}>
                   {day > today ? (
-                    <span className={`${cell} opacity-40`}>{number}</span>
+                    <span className={`${base} border border-dashed border-border-strong text-faint`}>{number}</span>
                   ) : (
                     <Link
                       href={hrefFor(day)}

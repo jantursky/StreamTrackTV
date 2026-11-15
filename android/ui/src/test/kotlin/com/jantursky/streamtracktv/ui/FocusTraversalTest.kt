@@ -1,11 +1,17 @@
 package com.jantursky.streamtracktv.ui
 
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsNotFocused
+import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -14,6 +20,7 @@ import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
 import com.jantursky.streamtracktv.data.settings.Settings
 import com.jantursky.streamtracktv.ui.components.PillButton
+import com.jantursky.streamtracktv.ui.dashboard.DashboardScreen
 import com.jantursky.streamtracktv.ui.settings.SettingsActions
 import com.jantursky.streamtracktv.ui.settings.SettingsModel
 import com.jantursky.streamtracktv.ui.settings.SettingsScreen
@@ -24,6 +31,10 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+private const val MAX_STEPS = 20
+private const val DOWN_STOPS = 6
 
 @OptIn(ExperimentalTestApi::class)
 @RunWith(RobolectricTestRunner::class)
@@ -89,5 +100,67 @@ class FocusTraversalTest {
         compose.onNodeWithText("Server").assertIsFocusedAncestor()
         press(Key.DirectionCenter)
         compose.onNodeWithText("Cancel").assertIsFocused()
+    }
+
+    private fun showToday(recompositions: MutableIntState? = null) {
+        val model = DashboardFixture.model()
+        val catalog = DashboardFixture.catalog()
+        compose.setContent {
+            StreamTrackTheme {
+                NavigationLayout(Destination.TODAY, onNavigate = {}) {
+                    recompositions?.intValue
+                    DashboardScreen(model, catalog, onOpenSetup = {}, onSyncNow = {})
+                }
+            }
+        }
+    }
+
+    /** Node ids change when a lazy item is scrolled out and back, so a stop is identified by its look. */
+    private fun focusedStop(): String {
+        val node = compose.onNode(isFocused()).fetchSemanticsNode()
+        return "${node.boundsInRoot}${node.config.getOrNull(SemanticsProperties.ContentDescription)}"
+    }
+
+    /** Presses [key] until focus stops moving and returns how many presses moved it. */
+    private fun walk(key: Key): Int {
+        var moves = 0
+        while (moves < MAX_STEPS) {
+            val before = focusedStop()
+            press(key)
+            if (focusedStop() == before) return moves
+            moves++
+        }
+        return moves
+    }
+
+    @Test
+    fun `one Right press from the rail lands on Sync now`() {
+        showToday()
+        compose.onNodeWithTag(navTag(Destination.TODAY)).assertIsFocused()
+        press(Key.DirectionRight)
+        compose.onNodeWithText("Sync now").assertIsFocusedAncestor()
+    }
+
+    @Test
+    fun `Down walks through the cards of Today and Up returns to Sync now without a stop`() {
+        showToday()
+        press(Key.DirectionRight)
+        // Remote presses (beside Screen time), Top apps, Active hours, Daily limits, This week, Sync.
+        assertEquals(DOWN_STOPS, walk(Key.DirectionDown))
+        // Back up the same column, then one more stop on Screen time before Sync now.
+        assertTrue(walk(Key.DirectionUp) >= DOWN_STOPS)
+        compose.onNodeWithText("Sync now").assertIsFocusedAncestor()
+    }
+
+    @Test
+    fun `the rail takes focus only when it first appears, not on later recompositions`() {
+        val recompositions = mutableIntStateOf(0)
+        showToday(recompositions)
+        press(Key.DirectionRight)
+        val inContent = focusedStop()
+        recompositions.intValue++
+        compose.waitForIdle()
+        assertEquals(inContent, focusedStop())
+        compose.onNodeWithTag(navTag(Destination.TODAY)).assertIsNotFocused()
     }
 }

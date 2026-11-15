@@ -13,6 +13,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.tv.material3.MaterialTheme
@@ -27,7 +28,10 @@ private const val ICON_PX = 160
 private const val BANNER_PX_WIDTH = 320
 private const val BANNER_PX_HEIGHT = 180
 
-/** App banner or icon from the package manager; a monogram tile when the app is not installed. */
+/**
+ * App banner or icon from the package manager; a monogram tile when the app is not installed.
+ * Both are decorative (no content description): callers put the app name in the same merged row.
+ */
 @Composable
 fun AppIcon(packageName: String, label: String, catalog: PackageManagerAppCatalog, modifier: Modifier = Modifier) {
     val bitmap by produceState<ImageBitmap?>(null, packageName) {
@@ -47,7 +51,8 @@ fun AppIcon(packageName: String, label: String, catalog: PackageManagerAppCatalo
         Image(image, contentDescription = null, modifier = shaped, contentScale = ContentScale.Fit)
     } else {
         val palette = LocalPalette.current
-        Box(shaped.background(palette.border), contentAlignment = Alignment.Center) {
+        // The monogram is decoration: the app name is read by the row that holds the icon.
+        Box(shaped.background(palette.border).clearAndSetSemantics { }, contentAlignment = Alignment.Center) {
             Text(label.take(1).uppercase(), style = MaterialTheme.typography.titleMedium, color = palette.ink)
         }
     }

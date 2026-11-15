@@ -5,6 +5,10 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeFormatterBuilder
+import java.time.format.FormatStyle
+import java.time.format.TextStyle
+import java.time.temporal.ChronoField
 import java.util.Locale
 
 private const val MS_PER_MINUTE = 60_000L
@@ -42,3 +46,17 @@ private const val DAYS_SHOWN_AS_WEEKDAY = 6L
 
 /** `1,234` style grouping for counts. */
 fun formatCount(count: Long, locale: Locale = Locale.getDefault()): String = String.format(locale, "%,d", count)
+
+/**
+ * Short localized day name and the time of the full [hour] in the device's clock style, for example
+ * `Tue 9:00 PM` or `Di. 21:00`. Only the hour is known, so the minute is always `:00`.
+ */
+fun formatDayHour(day: LocalDate, hour: Int, locale: Locale = Locale.getDefault()): String {
+    val formatter =
+        DateTimeFormatterBuilder()
+            .appendText(ChronoField.DAY_OF_WEEK, TextStyle.SHORT)
+            .appendLiteral(' ')
+            .appendLocalized(null, FormatStyle.SHORT)
+            .toFormatter(locale)
+    return day.atTime(hour, 0).format(formatter)
+}

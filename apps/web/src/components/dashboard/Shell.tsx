@@ -18,7 +18,7 @@ interface ShellProps {
 export function DemoBadge({ t }: { t: Translate }) {
   return (
     <span
-      className="rounded-pill border border-accent-edge px-2.5 py-0.5 text-small font-medium text-accent-edge"
+      className="rounded-pill border border-accent-edge px-2.5 py-0.5 text-small font-medium text-ink"
       title={t('demo.note')}
       data-testid="demo-badge"
     >

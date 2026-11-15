@@ -57,6 +57,18 @@
     <item quantity="one">Setup is not finished: %1$d step is still open. Open Setup.</item>
     <item quantity="other">Setup is not finished: %1$d steps are still open. Open Setup.</item>
   </plurals>
+  <!-- Accessibility descriptions (read by TalkBack) -->
+  <plurals name="a11y_percent">
+    <item quantity="one">%1$d percent</item>
+    <item quantity="other">%1$d percent</item>
+  </plurals>
+  <string name="a11y_stat_card">%1$s, %2$s</string>
+  <string name="a11y_stat_card_detail">%1$s, %2$s. %3$s</string>
+  <string name="a11y_app_time">%1$s, %2$s</string>
+  <string name="a11y_hourly">Screen on %1$s, active %2$s</string>
+  <string name="a11y_hourly_none">Screen on %1$s, no active hours</string>
+  <string name="a11y_goal">%1$s, %2$s, %3$s</string>
+  <string name="goal_state_progress">%1$s · %2$s</string>
   <string name="history_title">History</string>
   <string name="history_range_day">Day</string>
   <string name="history_range_week">7 days</string>

@@ -17,14 +17,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.semantics.ProgressBarRangeInfo
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.progressBarRangeInfo
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import com.jantursky.streamtracktv.ui.R
 import com.jantursky.streamtracktv.ui.theme.LocalPalette
 import com.jantursky.streamtracktv.ui.theme.PillShape
+import kotlin.math.roundToInt
 
 /** Pill button. [primary] is the cyan filled action; there should be at most one per screen area. */
 @Composable
@@ -96,27 +102,39 @@ fun StatusMark(done: Boolean, doneLabel: String, pendingLabel: String) {
     }
 }
 
-/** Horizontal bar for shares and goal progress; values above 1 fill the bar. */
+/**
+ * Horizontal bar for shares and goal progress; values above 1 fill the bar. It reports its progress
+ * to TalkBack as a percentage. [label] names the bar when it stands alone; null inside a merged row
+ * that already names it.
+ */
 @Composable
-fun ShareBar(fraction: Float, modifier: Modifier = Modifier, description: String? = null) {
+fun ShareBar(fraction: Float, label: String?, modifier: Modifier = Modifier) {
     val palette = LocalPalette.current
+    val percentValue = (fraction * PERCENT).roundToInt().coerceAtLeast(0)
+    val percent = pluralStringResource(R.plurals.a11y_percent, percentValue, percentValue)
     Box(
         modifier
             .fillMaxWidth()
             .height(10.dp)
             .clip(PillShape)
             .background(palette.border)
-            .semantics { description?.let { contentDescription = it } },
+            .semantics {
+                label?.let { contentDescription = it }
+                stateDescription = percent
+                progressBarRangeInfo = ProgressBarRangeInfo(fraction.coerceIn(0f, 1f), 0f..1f)
+            },
     ) {
         Box(
             Modifier
                 .fillMaxWidth(fraction.coerceIn(0f, 1f))
                 .height(10.dp)
                 .clip(PillShape)
-                .background(palette.accent),
+                .background(palette.focusRing),
         )
     }
 }
+
+private const val PERCENT = 100
 
 @Composable
 fun SectionTitle(text: String, modifier: Modifier = Modifier) {

@@ -114,7 +114,7 @@ fun ServerScreen(state: PairingUiState.EnterServer, onInputChange: (String) -> U
                         .fillMaxWidth()
                         .border(
                             if (focused) 3.dp else 1.dp,
-                            if (focused) palette.accent else palette.borderStrong,
+                            if (focused) palette.focusRing else palette.borderStrong,
                             PillShape,
                         ).background(palette.surface, PillShape)
                         .padding(horizontal = 28.dp, vertical = 18.dp),

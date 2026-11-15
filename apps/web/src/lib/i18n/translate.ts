@@ -13,6 +13,11 @@ const DICTIONARIES: Readonly<Record<string, Messages>> = { en }
 export const LOCALES = Object.keys(DICTIONARIES)
 export const DEFAULT_LOCALE = 'en'
 
+/** The `lang` value for a page rendered with `locale`: the locale itself if a dictionary exists, else English. */
+export function htmlLang(locale: string): string {
+  return Object.hasOwn(DICTIONARIES, locale) ? locale : DEFAULT_LOCALE
+}
+
 function lookup(messages: Messages, key: string): string {
   let node: unknown = messages
   for (const part of key.split('.')) node = (node as Record<string, unknown>)[part]

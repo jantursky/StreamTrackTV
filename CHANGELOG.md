@@ -4,6 +4,20 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-15
+
+### Added
+
+- Dashboard: automated accessibility checks (axe, WCAG 2.2 AA) on every demo page in light and dark, and a keyboard navigation test.
+- TV: every card on Today is one TalkBack stop with one sentence, bars announce their progress as a percentage, and the hourly chart reads as a single summary.
+
+### Changed
+
+- TV: Sync now moved to the top of Today, one Right press from the navigation rail.
+- TV: the navigation rail, the PIN keypad and the cards grow with the system font size. Hour axis labels line up with the bars, and Insights times follow the device language and 12 or 24 hour clock.
+- TV: the light theme focus ring, bars and link text are darker to reach WCAG contrast; the unused faint text colour is removed.
+- Dashboard: faint text reaches 4.5 to 1 contrast in both themes, transitions stop when the visitor prefers reduced motion, and the page `lang` follows the language it is rendered in.
+
 ## [1.2.1] - 2026-11-11
 
 ### Fixed

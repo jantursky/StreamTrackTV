@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-15
+
+### Changed
+
+- No change to the schemas. The version moves with the app release 1.3.0, which improves accessibility on the TV and the dashboard.
+
 ## [1.2.1] - 2026-11-11
 
 ### Changed

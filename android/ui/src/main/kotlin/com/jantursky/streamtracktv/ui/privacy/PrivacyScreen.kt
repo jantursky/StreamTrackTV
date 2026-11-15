@@ -157,7 +157,7 @@ private fun PayloadBox(json: String, tag: String = PAYLOAD_TAG) {
             Modifier
                 .fillMaxWidth()
                 .height(PAYLOAD_HEIGHT)
-                .border(if (focused) 3.dp else 1.dp, if (focused) palette.accent else palette.border, CardShape)
+                .border(if (focused) 3.dp else 1.dp, if (focused) palette.focusRing else palette.border, CardShape)
                 .background(palette.surface, CardShape)
                 .onPreviewKeyEvent { event ->
                     val delta =
