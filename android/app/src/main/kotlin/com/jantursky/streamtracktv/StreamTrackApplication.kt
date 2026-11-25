@@ -6,10 +6,12 @@ import androidx.work.Configuration
 import androidx.work.ListenableWorker
 import androidx.work.WorkerFactory
 import androidx.work.WorkerParameters
+import com.jantursky.streamtracktv.collector.AppCatalog
 import com.jantursky.streamtracktv.collector.CollectionWorker
 import com.jantursky.streamtracktv.collector.CollectorHost
 import com.jantursky.streamtracktv.collector.UsageCollector
 import com.jantursky.streamtracktv.data.UsageRepository
+import com.jantursky.streamtracktv.data.settings.SettingsRepository
 import com.jantursky.streamtracktv.sync.SyncWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +30,8 @@ class StreamTrackApplication :
 
     override val usageRepository: UsageRepository get() = graph.usage
     override val usageCollector: UsageCollector get() = graph.collector
+    override val settingsRepository: SettingsRepository get() = graph.settings
+    override val appCatalog: AppCatalog get() = graph.catalog
 
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder().setWorkerFactory(Workers(graph)).build()

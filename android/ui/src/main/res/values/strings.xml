@@ -246,6 +246,24 @@
   <string name="apps_limit">Limit: %1$s</string>
   <string name="apps_empty">No apps seen yet.</string>
   <string name="back">Back</string>
+  <string name="settings_on">On</string>
+  <string name="settings_weekend_value">Weekend value</string>
+  <string name="settings_bedtime">Bedtime</string>
+  <string name="settings_bedtime_helper">Reminder while the TV is on inside this window. Press to set the start and the end.</string>
+  <string name="settings_bedtime_value">%1$s to %2$s</string>
+  <string name="settings_reminders">Reminders</string>
+  <string name="settings_reminders_helper">A banner at 80%% and 100%% of a limit, and at bedtime. Limits stay on when off.</string>
+  <string name="entry_minutes_helper">Type minutes from 1 to 1440, then press the check mark.</string>
+  <string name="entry_clock_helper">Type the time as HHMM, for example 2230, then press the check mark.</string>
+  <string name="entry_error_minutes">Enter 1 to 1440 minutes. The old value stays.</string>
+  <string name="entry_error_clock">Enter a time from 0000 to 2359. The old value stays.</string>
+  <string name="entry_remove">Remove</string>
+  <string name="settings_screen_limit_weekend">Screen time limit, weekend</string>
+  <string name="settings_weekend_value_set">Weekend: %1$s</string>
+  <string name="entry_app_limit">%1$s limit</string>
+  <string name="entry_app_limit_weekend">%1$s limit, weekend</string>
+  <string name="entry_bedtime_start">Bedtime starts</string>
+  <string name="entry_bedtime_end">Bedtime ends</string>
 
   <!-- About -->
   <string name="about_title">About</string>

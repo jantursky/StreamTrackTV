@@ -85,11 +85,28 @@ fun PinDots(count: Int, modifier: Modifier = Modifier) {
 }
 
 /**
- * A 3 by 4 keypad the D-pad walks, plus the number keys of a remote. [onSubmit] is the check mark;
- * [enabled] false (during a wait) turns every key off.
+ * The PIN keypad: a digit keypad with the D-pad and the number keys of a remote, shared with the settings
+ * minutes entry. [enabled] false (during a wait) turns every key off.
  */
 @Composable
 fun PinPad(
+    enabled: Boolean,
+    onDigit: (Char) -> Unit,
+    onDelete: () -> Unit,
+    onSubmit: () -> Unit,
+    modifier: Modifier = Modifier,
+    focusRequester: FocusRequester = FocusRequester(),
+    deleteLabel: String = "⌫",
+    submitLabel: String = "✓",
+) = DigitPad(enabled, onDigit, onDelete, onSubmit, modifier, focusRequester, deleteLabel, submitLabel)
+
+/**
+ * A 3 by 4 keypad the D-pad walks, plus the number keys of a remote. [onSubmit] is the check mark;
+ * [enabled] false turns every key off. Keys carry the `pinKeyTag` test tags, so use it with PIN screens and
+ * other entry screens alike.
+ */
+@Composable
+fun DigitPad(
     enabled: Boolean,
     onDigit: (Char) -> Unit,
     onDelete: () -> Unit,

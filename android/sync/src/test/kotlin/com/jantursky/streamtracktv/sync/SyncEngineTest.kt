@@ -293,7 +293,42 @@ class SyncEngineTest {
             assertEquals(2, preview.rows.usage.size)
         }
 
+    @Test
+    fun `limits, weekend values and bedtime never change the payload`() =
+        runTest {
+            val stores = paired()
+            stores.usage.record(rows)
+            val server = FakeServer(emptyList())
+            val before = engine(stores, server).nextBatch()
+            stores.settings.setScreenLimit(180)
+            stores.settings.setScreenLimitWeekend(240)
+            stores.settings.setAppLimit("com.netflix.ninja", 60)
+            stores.settings.setAppLimitWeekend("com.netflix.ninja", 90)
+            stores.settings.setBedtime(22 * 60, 7 * 60)
+            stores.settings.setRemindersEnabled(false)
+            assertEquals(before, engine(stores, server).nextBatch())
+        }
+
     // Security events
+
+    @Test
+    fun `the security event types are the ones packages schema lists`() {
+        assertEquals(
+            listOf(
+                "app_opened",
+                "lock_shown",
+                "pin_wrong",
+                "pin_wait_started",
+                "unlocked",
+                "forgot_pin_opened",
+                "pin_reset_confirmed",
+                "pin_enabled",
+                "pin_changed",
+                "pin_disabled",
+            ),
+            SecurityEventType.entries.map { it.wireName },
+        )
+    }
 
     private val eventsOk = json("""{"accepted":3}""")
 

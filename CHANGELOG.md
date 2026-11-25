@@ -4,6 +4,20 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-25
+
+### Added
+
+- TV: reminders at 80% and 100% of the daily screen limit and of each app limit, shown as a banner that never takes focus or keys and leaves after 10 seconds. A toast is the fallback.
+- TV: a bedtime window that may cross midnight, with a reminder at most every 30 minutes while the screen is on.
+- TV: a Reminders switch that turns every reminder off without removing a limit.
+- TV: an optional weekend value for the daily screen limit and for each app limit.
+
+### Changed
+
+- TV: limits are typed in minutes (1 to 1440) on the remote's keypad instead of stepping through presets.
+- TV: the remote counter's service description says it can show a reminder. No re-enable is needed.
+
 ## [1.3.0] - 2026-11-15
 
 ### Added

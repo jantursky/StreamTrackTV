@@ -19,12 +19,6 @@ data class AppEntry(val packageName: String, val label: String, val excluded: Bo
 
 data class SettingsModel(val settings: Settings, val apps: List<AppEntry>, val pinEnabled: Boolean = false)
 
-/** Choices the D-Pad cycles through. Null means off. */
-val SCREEN_LIMIT_CHOICES: List<Int?> = listOf(null, 60, 120, 180, 240, 360)
-val APP_LIMIT_CHOICES: List<Int?> = listOf(null, 30, 60, 120, 180)
-
-fun <T> List<T>.after(current: T): T = this[(indexOf(current) + 1) % size]
-
 class SettingsViewModel(private val graph: UiGraph, ownPackage: String) : ViewModel() {
     private val launchable = flow { emit(graph.catalog.launchablePackages() - ownPackage) }.flowOn(Dispatchers.IO)
 
@@ -52,7 +46,20 @@ class SettingsViewModel(private val graph: UiGraph, ownPackage: String) : ViewMo
 
     fun cycleInterval(current: Int) = launch { graph.settings.setSyncInterval(SyncInterval.next(current)) }
 
-    fun cycleScreenLimit(current: Int?) = launch { graph.settings.setScreenLimit(SCREEN_LIMIT_CHOICES.after(current)) }
+    /** Limits are typed exactly on the entry screen; null removes the limit. */
+    fun setScreenLimit(minutes: Int?) = launch { graph.settings.setScreenLimit(minutes) }
+
+    fun setScreenLimitWeekend(minutes: Int?) = launch { graph.settings.setScreenLimitWeekend(minutes) }
+
+    fun setAppLimit(packageName: String, minutes: Int?) = launch { graph.settings.setAppLimit(packageName, minutes) }
+
+    fun setAppLimitWeekend(packageName: String, minutes: Int?) =
+        launch { graph.settings.setAppLimitWeekend(packageName, minutes) }
+
+    /** Both bounds together; null for either clears the window. */
+    fun setBedtime(startMinute: Int?, endMinute: Int?) = launch { graph.settings.setBedtime(startMinute, endMinute) }
+
+    fun setRemindersEnabled(enabled: Boolean) = launch { graph.settings.setRemindersEnabled(enabled) }
 
     fun toggleTheme(light: Boolean) = launch { graph.settings.setLightTheme(!light) }
 
@@ -64,11 +71,6 @@ class SettingsViewModel(private val graph: UiGraph, ownPackage: String) : ViewMo
                 graph.settings.setAppLimit(app.packageName, null)
                 graph.usage.deletePackage(app.packageName)
             }
-        }
-
-    fun cycleAppLimit(app: AppEntry) =
-        launch {
-            graph.settings.setAppLimit(app.packageName, APP_LIMIT_CHOICES.after(app.limitMinutes))
         }
 
     /** Forgets the device token; the root then shows pairing with the server address filled in. */

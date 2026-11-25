@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
   <string name="key_press_service_label">StreamTrack TV remote counter</string>
-  <string name="key_press_service_description">Counts remote presses by class only: D-Pad, select, back, home, media, volume or other. It never records which key was pressed, never reads text or screen content, and never blocks a key.</string>
+  <string name="key_press_service_description">Counts remote presses by class only: D-Pad, select, back, home, media, volume or other. It can show a short reminder about a limit or bedtime. It never records which key was pressed, never reads text or screen content, and never blocks a key.</string>
+  <string name="reminder_screen_near">Screen time: %1$s left today.</string>
+  <string name="reminder_screen_full">Today\'s screen time limit is used up.</string>
+  <string name="reminder_app_near">%1$s: %2$s left today.</string>
+  <string name="reminder_app_full">%1$s: today\'s limit is used up.</string>
+  <string name="reminder_bedtime">It is bedtime. Consider turning the TV off.</string>
+  <string name="reminder_duration_minutes">%1$d min</string>
+  <string name="reminder_duration_hours">%1$d h %2$d min</string>
 </resources>

@@ -32,6 +32,7 @@ kover {
                     "*\$\$serializer",
                     "*.KeystoreSecretCipher",
                     "*.KeyPressService*",
+                    "*.ReminderBanner*",
                     "*.BootReceiver*",
                     "*.CollectionWorker*",
                     "*.CollectorScheduler*",

@@ -105,6 +105,8 @@ The **History** tab reads the same hourly buckets that sync uses, so it needs no
 
 ### PIN lock
 
+**Reminders and limits.** Limits are typed exactly in Settings, with an optional weekend value. While the screen is on, the TV shows a banner at 80% and 100% of a limit, and a bedtime reminder inside the bedtime window. The Reminders switch turns them all off. Nothing is blocked, and no new permission is requested.
+
 **Settings → PIN lock** asks for a 4 to 8 digit PIN, entered on an on-screen keypad that works with the D-pad. Only a salted PBKDF2 hash is stored, on the TV. Once a PIN is on, the app asks for it on every start and whenever it leaves the screen and comes back, including after opening system settings from **Setup**. Three wrong tries are free; after that the keypad waits 30 seconds, doubling up to 15 minutes. The wait survives restarts and clock changes. Change or turn off the PIN in Settings (both ask for the current PIN). The app is also hidden from the recent apps list.
 
 #### Security log

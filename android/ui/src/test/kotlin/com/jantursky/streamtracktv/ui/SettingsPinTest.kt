@@ -32,7 +32,9 @@ class SettingsPinTest {
         val actions =
             SettingsActions(
                 cycleInterval = {},
-                cycleScreenLimit = {},
+                editScreenLimit = {},
+                editBedtime = {},
+                setReminders = {},
                 toggleTheme = {},
                 openApps = {},
                 unpair = {},

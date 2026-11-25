@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -26,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.jantursky.streamtracktv.collector.PackageManagerAppCatalog
+import com.jantursky.streamtracktv.data.settings.Settings
 import com.jantursky.streamtracktv.ui.R
 import com.jantursky.streamtracktv.ui.UiGraph
 import com.jantursky.streamtracktv.ui.components.AppIcon
@@ -43,7 +45,9 @@ private enum class Pending { UNPAIR, CHANGE_SERVER, DELETE }
 /** What the settings list can ask for; the route maps these to the view model. */
 class SettingsActions(
     val cycleInterval: (Int) -> Unit,
-    val cycleScreenLimit: (Int?) -> Unit,
+    val editScreenLimit: () -> Unit,
+    val editBedtime: () -> Unit,
+    val setReminders: (Boolean) -> Unit,
     val toggleTheme: (Boolean) -> Unit,
     val openApps: () -> Unit,
     val unpair: () -> Unit,
@@ -52,24 +56,41 @@ class SettingsActions(
     val openPin: (PinFlowMode) -> Unit = {},
 )
 
+/** The entry screen before [edit] in the same flow, or null for the list it was opened from. */
+private fun previousEdit(edit: SettingsEdit): SettingsEdit? =
+    when (edit) {
+        is SettingsEdit.ScreenLimit -> if (edit.weekend) SettingsEdit.ScreenLimit(false) else null
+        is SettingsEdit.AppLimit -> if (edit.weekend) SettingsEdit.AppLimit(edit.app, false) else null
+        is SettingsEdit.Bedtime -> if (edit.editingEnd) SettingsEdit.Bedtime(false, edit.start) else null
+    }
+
 @Composable
 fun SettingsRoute(viewModel: SettingsViewModel, graph: UiGraph, demoAvailable: Boolean) {
     val model by viewModel.model.collectAsStateWithLifecycle()
     val current = model ?: return
     var showApps by rememberSaveable { mutableStateOf(false) }
     var pinMode by rememberSaveable { mutableStateOf<PinFlowMode?>(null) }
+    var edit by remember { mutableStateOf<SettingsEdit?>(null) }
     val activePin = pinMode
+    val activeEdit = edit
     if (activePin != null) {
         PinFlowRoute(activePin, graph) { pinMode = null }
+    } else if (activeEdit != null) {
+        BackHandler { edit = previousEdit(activeEdit) }
+        SettingsEditScreen(activeEdit, current.settings, viewModel) { edit = it }
     } else if (showApps) {
         BackHandler { showApps = false }
-        AppsScreen(current.apps, graph.catalog, viewModel::toggleExcluded, viewModel::cycleAppLimit) { showApps = false }
+        AppsScreen(current.apps, graph.catalog, viewModel::toggleExcluded, { edit = SettingsEdit.AppLimit(it, false) }) {
+            showApps = false
+        }
     } else {
         SettingsScreen(
             current,
             SettingsActions(
                 cycleInterval = viewModel::cycleInterval,
-                cycleScreenLimit = viewModel::cycleScreenLimit,
+                editScreenLimit = { edit = SettingsEdit.ScreenLimit(false) },
+                editBedtime = { edit = SettingsEdit.Bedtime(false, null) },
+                setReminders = viewModel::setRemindersEnabled,
                 toggleTheme = viewModel::toggleTheme,
                 openApps = { showApps = true },
                 unpair = viewModel::unpair,
@@ -78,6 +99,75 @@ fun SettingsRoute(viewModel: SettingsViewModel, graph: UiGraph, demoAvailable: B
                 openPin = { pinMode = it },
             ),
         )
+    }
+}
+
+/**
+ * One typed value. [show] moves to another entry screen, or to the list it came from when given null.
+ * Saving a value or going back returns to the screen before this one.
+ */
+@Composable
+private fun SettingsEditScreen(edit: SettingsEdit, settings: Settings, viewModel: SettingsViewModel, show: (SettingsEdit?) -> Unit) {
+    val back = { show(previousEdit(edit)) }
+    when (edit) {
+        is SettingsEdit.ScreenLimit -> {
+            MinutesEntryScreen(
+                title = stringResource(if (edit.weekend) R.string.settings_screen_limit_weekend else R.string.settings_screen_limit),
+                kind = EntryKind.MINUTES,
+                current = if (edit.weekend) settings.screenLimitWeekendMinutes else settings.screenLimitMinutes,
+                onSave = { minutes ->
+                    if (edit.weekend) viewModel.setScreenLimitWeekend(minutes) else viewModel.setScreenLimit(minutes)
+                    back()
+                },
+                onBack = back,
+                weekendRow = if (edit.weekend) null else ({ show(SettingsEdit.ScreenLimit(true)) }),
+            )
+        }
+
+        is SettingsEdit.AppLimit -> {
+            val pkg = edit.app.packageName
+            MinutesEntryScreen(
+                title =
+                    stringResource(
+                        if (edit.weekend) R.string.entry_app_limit_weekend else R.string.entry_app_limit,
+                        edit.app.label,
+                    ),
+                kind = EntryKind.MINUTES,
+                current = if (edit.weekend) settings.appLimitsWeekendMinutes[pkg] else settings.appLimitsMinutes[pkg],
+                onSave = { minutes ->
+                    if (edit.weekend) viewModel.setAppLimitWeekend(pkg, minutes) else viewModel.setAppLimit(pkg, minutes)
+                    back()
+                },
+                onBack = back,
+                weekendRow = if (edit.weekend) null else ({ show(SettingsEdit.AppLimit(edit.app, true)) }),
+            )
+        }
+
+        is SettingsEdit.Bedtime -> {
+            MinutesEntryScreen(
+                title = stringResource(if (edit.editingEnd) R.string.entry_bedtime_end else R.string.entry_bedtime_start),
+                kind = EntryKind.CLOCK,
+                current = if (edit.editingEnd) settings.bedtimeEndMinute else settings.bedtimeStartMinute,
+                onSave = { time ->
+                    when {
+                        time == null -> {
+                            viewModel.setBedtime(null, null)
+                            show(null)
+                        }
+
+                        !edit.editingEnd -> {
+                            show(SettingsEdit.Bedtime(true, time))
+                        }
+
+                        else -> {
+                            viewModel.setBedtime(edit.start, time)
+                            show(null)
+                        }
+                    }
+                },
+                onBack = back,
+            )
+        }
     }
 }
 
@@ -107,7 +197,33 @@ fun SettingsScreen(model: SettingsModel, actions: SettingsActions) {
                 stringResource(R.string.settings_screen_limit),
                 settings.screenLimitMinutes?.let { formatDuration(it * MINUTE_MS) }
                     ?: stringResource(R.string.settings_off),
-                { actions.cycleScreenLimit(settings.screenLimitMinutes) },
+                actions.editScreenLimit,
+                helper =
+                    settings.screenLimitWeekendMinutes?.let {
+                        stringResource(R.string.settings_weekend_value_set, formatDuration(it * MINUTE_MS))
+                    },
+            )
+        }
+        item {
+            val start = settings.bedtimeStartMinute
+            val end = settings.bedtimeEndMinute
+            OptionRow(
+                stringResource(R.string.settings_bedtime),
+                if (start != null && end != null) {
+                    stringResource(R.string.settings_bedtime_value, formatClock(start), formatClock(end))
+                } else {
+                    stringResource(R.string.settings_off)
+                },
+                actions.editBedtime,
+                helper = stringResource(R.string.settings_bedtime_helper),
+            )
+        }
+        item {
+            OptionRow(
+                stringResource(R.string.settings_reminders),
+                stringResource(if (settings.remindersEnabled) R.string.settings_on else R.string.settings_off),
+                { actions.setReminders(!settings.remindersEnabled) },
+                helper = stringResource(R.string.settings_reminders_helper),
             )
         }
         item {
@@ -220,7 +336,7 @@ fun AppsScreen(
     apps: List<AppEntry>,
     catalog: PackageManagerAppCatalog,
     onToggleExcluded: (AppEntry) -> Unit,
-    onCycleLimit: (AppEntry) -> Unit,
+    onEditLimit: (AppEntry) -> Unit,
     onBack: () -> Unit,
 ) {
     val palette = LocalPalette.current
@@ -253,7 +369,7 @@ fun AppsScreen(
                     val limit =
                         app.limitMinutes?.let { formatDuration(it * MINUTE_MS) }
                             ?: stringResource(R.string.settings_off)
-                    PillButton(stringResource(R.string.apps_limit, limit), { onCycleLimit(app) })
+                    PillButton(stringResource(R.string.apps_limit, limit), { onEditLimit(app) })
                 }
             }
         }
