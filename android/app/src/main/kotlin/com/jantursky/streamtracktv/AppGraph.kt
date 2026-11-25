@@ -32,7 +32,7 @@ import kotlinx.coroutines.SupervisorJob
 
 /** The one place where the app's objects are created and wired together. */
 class AppGraph(context: Context, scope: CoroutineScope) {
-    private val catalog = PackageManagerAppCatalog(context)
+    val catalog = PackageManagerAppCatalog(context)
     private val workManager by lazy { WorkManager.getInstance(context) }
 
     @OptIn(ExperimentalCoroutinesApi::class)

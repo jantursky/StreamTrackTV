@@ -43,6 +43,10 @@ The TV records when the app is opened and what happens at its PIN lock: lock scr
 
 Every table has row level security, so a signed-in user can read and change only their own rows. The Supabase secret key bypasses these rules and is used only in the device API (sync and pairing, including claim and delivery), the share page, the cron routes and account deletion. Keep it out of browser code and public repositories.
 
+## The remote counter's accessibility service
+
+The remote counter is an accessibility service. It counts key presses by class and can now also draw the short reminder banner described in [TV app](/guides/tv-app#reminders-and-limits). It still reads no text or screen content, receives no accessibility events and never consumes a key. The banner needs no draw-over-apps or notification permission, and the service description on the TV says so.
+
 ## Limits
 
 Request bodies are read with a byte cap (1 MiB for sync, 4 KiB for pairing) before parsing, then validated strictly with Zod and capped at 2000 rows per kind. A payload with raw key codes, or any field the schema does not know, is rejected. See the [rate limits](/api#rate-limits).

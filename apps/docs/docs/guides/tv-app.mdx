@@ -58,7 +58,17 @@ Package names, app display names and durations are the most specific data that l
 - **History.** Past days from the data on the TV. See [History](#history).
 - **Privacy.** The exact JSON of the next upload, and the security events waiting to go with it.
 - **Setup.** The permission checklist described above.
-- **Settings.** Sync interval (15 minutes to 24 hours), a daily screen time limit, per-app limits, excluded apps, light or dark theme, the server address, unpairing and deleting local data.
+- **Settings.** Sync interval (15 minutes to 24 hours), a daily screen time limit and per-app limits typed exactly, each with an optional weekend value, bedtime, the Reminders switch, excluded apps, light or dark theme, the server address, unpairing and deleting local data.
+
+## Reminders and limits
+
+Set the daily screen time limit and each app's limit in **Settings**. Type the minutes, from 1 to 1440, on the remote's keypad and press the check mark. **Remove** clears a limit. Each limit can also have a **Weekend** value for Saturday and Sunday, and the dashboard uses the value for the current day.
+
+While the screen is on, the TV shows a short banner at 80% and at 100% of a limit: screen time for the daily limit, or one app's time for its limit. The banner leaves by itself after 10 seconds. It never takes focus, a key or a touch, so the remote keeps working in the app in front. Each threshold shows at most once a day for each limit value, and raising a limit lets it show again.
+
+**Bedtime** is a window of two times, which may cross midnight. While the screen is on inside it, the TV shows a bedtime reminder, and no more often than every 30 minutes. Set the start, then the end; **Remove** on the start clears the window.
+
+**Reminders** turns every banner off, bedtime included, and leaves the limits in place, so the dashboard still shows where you stand. Nothing is blocked, locked or hidden, and no reminder is uploaded or recorded. Limits and bedtime stay on the TV and are not synced from the dashboard.
 
 ## History
 

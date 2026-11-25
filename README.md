@@ -25,6 +25,7 @@ StreamTrack TV shows you how your Android TV is really used. An app on the TV co
 
 - The TV app (Kotlin, Compose for TV) counts remote presses by class (D-pad, OK, Back, Home, media, volume), reads foreground app time from usage stats, tracks screen-on time and keeps hourly buckets in a local Room database. It works offline and syncs on a schedule you set, from 15 minutes to 24 hours.
 - A privacy screen on the TV shows the exact JSON the next sync will send, and the list of what is never collected.
+- Reminders on the TV at 80% and 100% of a daily limit, and at bedtime, with limits typed exactly and a weekend value. Nothing is blocked.
 - A PIN lock on the TV, with a security log (app opened, wrong PIN, Forgot PIN and more) that the dashboard shows on its Security page.
 - The dashboard (Next.js on Vercel, Postgres and Auth on Supabase) has an overview, calendar with compare, apps and categories, remote usage, hour-by-weekday heatmap, devices, household members, goals and limits, read-only share links, a weekly email digest, export and delete.
 - Demo mode uses seeded data and needs no sign-in, so you can look around before deploying: [streamtrack-tv.vercel.app/demo](https://streamtrack-tv.vercel.app/demo).

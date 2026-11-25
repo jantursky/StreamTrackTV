@@ -4,6 +4,12 @@ All notable changes to this project are documented here. The format follows [Kee
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-25
+
+### Changed
+
+- No change to the schemas. The version moves with the app release 1.4.0, which adds on-screen reminders, typed limits and a bedtime window on the TV. Nothing is sent to the server that was not sent before.
+
 ## [1.3.0] - 2026-11-15
 
 ### Changed

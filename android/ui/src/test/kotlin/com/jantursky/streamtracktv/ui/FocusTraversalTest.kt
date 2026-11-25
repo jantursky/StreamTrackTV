@@ -76,7 +76,9 @@ class FocusTraversalTest {
         val actions =
             SettingsActions(
                 cycleInterval = { interval = it },
-                cycleScreenLimit = {},
+                editScreenLimit = {},
+                editBedtime = {},
+                setReminders = {},
                 toggleTheme = {},
                 openApps = {},
                 unpair = {},
@@ -96,7 +98,8 @@ class FocusTraversalTest {
         compose.onNodeWithText("Sync interval").assertIsFocusedAncestor()
         press(Key.DirectionCenter)
         assertEquals(60, interval)
-        repeat(5) { press(Key.DirectionDown) }
+        // Screen limit, Bedtime and Reminders sit between the interval and the server rows.
+        repeat(7) { press(Key.DirectionDown) }
         compose.onNodeWithText("Server").assertIsFocusedAncestor()
         press(Key.DirectionCenter)
         compose.onNodeWithText("Cancel").assertIsFocused()

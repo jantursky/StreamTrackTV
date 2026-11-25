@@ -48,7 +48,7 @@ fun dashboardModel(inputs: DashboardInputs): DashboardModel {
         today = inputs.today,
         summary = summary.copy(apps = summary.apps.filter { it.packageName !in excluded }),
         labels = inputs.labels,
-        goals = evaluateGoals(inputs.settings.goals, summary),
+        goals = evaluateGoals(inputs.settings.goalsFor(inputs.today), summary),
         binges = detectBinges(inputs.week.usage.filter { it.packageName !in excluded }).sortedByDescending { it.start },
         idle = detectIdleScreen(inputs.week.screen, inputs.week.keys).sortedByDescending { it.start },
         lastSync = inputs.settings.lastSync,
